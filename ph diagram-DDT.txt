@@ -1,0 +1,35 @@
+﻿P-h Diagram: Ideal vs. Real vs. Multi-Circuit
+Your hand-drawn diagram is a perfect representation of the ideal refrigeration cycle. The "real" cycle (described in the previous version) adds superheat and subcooling.
+Your system is even more detailed: it's a "real, multi-circuit" cycle with three parallel evaporators. This guide explains how to plot all your individual sensor data on one diagram.
+Your Drawing (The "Ideal" Cycle)
+This diagram shows a perfect, textbook cycle with its four points.
+* 1: Saturated Vapor (Compressor Inlet)
+* 2: Superheated Vapor (Compressor Outlet)
+* 3: Saturated Liquid (TXV Inlet)
+* 4: Liquid/Vapor Mix (TXV Outlet)
+Your System (The "Real" Cycle with Sensor Labels)
+This is what the main state points from your data would look like on a "real" cycle diagram.
+* Point 1: Compressor Inlet (Sensor T_2b)
+* Point 2: Compressor Outlet (Sensor T_3a)
+* Point 3: TXV Inlet (Average of T_4b)
+* Point 4: TXV Outlet (Average of T_1a)
+* Evaporator Outlet (Average of T_2a)
+Plotting Your Individual Coils (This is your question)
+You are correct that you have three different subcooling and superheat values. You can plot all of these on one diagram, and it will look like this:
+On the High-Pressure Line (P_disch):
+* Instead of one "Point 3", you will have three distinct points for your TXV inlets, all to the left of the liquid dome.
+   * Point 3-LH: Plotted using P_disch and T_4b-lh
+   * Point 3-CTR: Plotted using P_disch and T_4b-ctr
+   * Point 3-RH: Plotted using P_disch and T_4b-rh
+* Each of these will show a slightly different amount of subcooling.
+On the Low-Pressure Line (P_suction):
+* You will have three distinct points for your evaporator outlets, all to the right of the vapor dome.
+   * Evap Out-LH: Plotted using P_suction and T_2a-LH
+   * Evap Out-CTR: Plotted using P_suction and T_2a-ctr
+   * Evap Out-RH: Plotted using P_suction and T_2a-RH
+* Each of these will show a slightly different amount of superheat.
+Plotting the Compressor Inlet (T_2b):
+* Your main "Point 1" (T_2b) will be a fourth point on the low-pressure line.
+* Its position will represent the mixed average of the three evaporator outlet streams after they have combined and traveled down the suction line, likely picking up a little more heat.
+Conclusion:
+You don't need three diagrams. You need one P-h diagram that shows two horizontal pressure lines. On those lines, you will plot your 3 individual subcooling points and 3 individual superheat points. This is the most accurate way to represent your system's real performance.

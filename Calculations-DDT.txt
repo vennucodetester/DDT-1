@@ -1,0 +1,110 @@
+﻿Data Lineage Guide: From Sensor to Final Calculation
+This guide explains the source and calculation method for every column in your Diagnostic app-Calculations.xlsx spreadsheet. This is the blueprint for automating your data processing.
+There are four sources for your data:
+1. Sensor Data: Direct, raw measurements from your lab's data logger.
+2. User Manual Input: Static values (e.g., rated performance, compressor size) that you must get from the manufacturer's data sheet.
+3. Property Calculation (CoolProp): Thermodynamic properties (Density, Enthalpy, Saturation Temp) calculated by a property library.
+4. Direct Formula: Simple calculations that use other columns in your sheet.
+A. Primary Sensor Data (Lab Data)
+These are the raw inputs from your lab sensors, corresponding to the columns in your sheet.
+* Press.suc (P_suction): Sensor Data. Source: Suction Pressure Transducer.
+* Press disch (P_disch): Sensor Data. Source: Discharge Pressure Transducer.
+* Comp. rpm: Sensor Data. Source: Compressor RPM Sensor.
+* Cond.water.in: Sensor Data. Source: Temperature sensor at condenser water inlet.
+* Cond.water.out: Sensor Data. Source: Temperature sensor at condenser water outlet.
+* T_1a-lh, T_1b-lh: Sensor Data. Source: Temp sensors at LH TXV outlet / Evap inlet.
+* T_2a-LH: Sensor Data. Source: Temp sensor at LH Evap outlet (e.g., "Left TXV Bulb").
+* T_1a-ctr, T_1b-ctr: Sensor Data. Source: Temp sensors at CTR TXV outlet / Evap inlet.
+* T_2a-ctr: Sensor Data. Source: Temp sensor at CTR Evap outlet (e.g., "CTR TXV Bulb").
+* T_1a-rh, T_1c-rh: Sensor Data. Source: Temp sensors at RH TXV outlet / Evap inlet. (Note: T_1c-rh may be a typo for T_1b-rh)
+* T_2a-RH: Sensor Data. Source: Temp sensor at RH Evap outlet (e.g., "Right TXV Bulb").
+* Comp.in (T_2b): Sensor Data. Source: Temp sensor at compressor inlet (e.g., "Suction line into Comp").
+* T comp outlet (T_3a): Sensor Data. Source: Temp sensor at compressor discharge line.
+* T cond inlet (T_3b)**: Sensor Data. Source: Temp sensor at condenser inlet.
+* T cond. Outlet (T_4a)**: Sensor Data. Source: Temp sensor at condenser outlet.
+* TXV in-LH (T_4b-lh): Sensor Data. Source: Temp sensor at LH TXV inlet.
+* TXV in-CTR (T_4b-ctr): Sensor Data. Source: Temp sensor at CTR TXV inlet.
+* TXV in-LH (At TXV RH): Sensor Data. Source: Temp sensor at RH TXV inlet. (Note: Header is a typo, should be TXV in-RH)
+B. Calculation Sections (Per-Row)
+1. "At LH/CTR/RH Coil" (Repeated for each of the 3 coils)
+* T_sat.lh: Property Calculation (CoolProp).
+   * Logic: Finds the evaporator's boiling point from its pressure.
+   * Inputs: Press.suc (converted to Absolute Pressure).
+   * Automation: CoolProp.PropsSI('T', 'P', P_suction_absolute, 'Q', 0, 'R290') (Converts to Kelvin).
+* S.H_lh coil: Direct Formula.
+   * Logic: Superheat = Actual Temp - Saturation Temp
+   * Formula: S.H_lh coil = T_2a-LH - T_sat.lh
+* D_coil lh, H_coil lh, S_coil lh: Property Calculation (CoolProp).
+   * Logic: Finds properties of the superheated gas leaving the coil.
+   * Inputs: T_2a-LH (in Kelvin) and Press.suc (in Absolute Pressure).
+   * Automation: CoolProp.PropsSI('D', 'T', T_2a_LH_kelvin, 'P', P_suction_absolute, 'R290') (Repeat for H and S).
+(This entire section is repeated for the CTR and RH coils using their respective sensors.)
+2. "At compressor inlet"
+* T saturation (T_sat.comp.in): Property Calculation (CoolProp).
+   * Logic: Same as T_sat.lh. It's the boiling point based on suction pressure.
+   * Inputs: Press.suc (Absolute).
+   * Automation: CoolProp.PropsSI('T', 'P', P_suction_absolute, 'Q', 0, 'R290').
+* Super heat (S.H_total): Direct Formula.
+   * Logic: Total Superheat = Actual Compressor Inlet Temp - Saturation Temp
+   * Formula: Super heat = Comp.in - T saturation
+* Density, Enthalpy, Entropy: Property Calculation (CoolProp).
+   * Logic: Finds properties of the gas entering the compressor. This is critical for mass flow.
+   * Inputs: Comp.in (T_2b in Kelvin) and Press.suc (Absolute).
+   * Automation: CoolProp.PropsSI('D', 'T', T_2b_kelvin, 'P', P_suction_absolute, 'R290') (Repeat for H and S).
+3. "At Condenser"
+* T saturation (T_sat.cond): Property Calculation (CoolProp).
+   * Logic: Finds the condenser's condensing point from its pressure.
+   * Inputs: Press disch (Absolute).
+   * Automation: CoolProp.PropsSI('T', 'P', P_disch_absolute, 'Q', 0, 'R290').
+* Sub cooling (S.C): Direct Formula.
+   * Logic: Subcooling = Saturation Temp - Actual Outlet Temp
+   * Formula: Sub cooling = T saturation - T cond. Outlet
+4. "At TXV LH/CTR/RH" (Repeated for each of the 3 TXVs)
+* T_Saturation: Property Calculation (CoolProp).
+   * Logic: Same as T_sat.cond. It's the condensing point based on discharge pressure.
+   * Inputs: Press disch (Absolute).
+   * Automation: CoolProp.PropsSI('T', 'P', P_disch_absolute, 'Q', 0, 'R290').
+* Subcooling: Direct Formula.
+   * Logic: Subcooling = Saturation Temp - Actual TXV Inlet Temp
+   * Formula: Subcooling = T_Saturation - TXV in-LH
+* Enthalpy: Property Calculation (CoolProp).
+   * Logic: Finds the enthalpy of the subcooled liquid entering the TXV. This is critical for cooling capacity.
+   * Inputs: TXV in-LH (in Kelvin) and Press disch (Absolute).
+   * Automation: CoolProp.PropsSI('H', 'T', T_4b_lh_kelvin, 'P', P_disch_absolute, 'R290').
+(This entire section is repeated for the CTR and RH TXVs using their respective sensors.)
+C. TOTAL (Final Calculations)
+This section calculates the final system performance. It requires User Manual Inputs from the compressor's data sheet.
+Step 1: Find Volumetric Efficiency (eta_vol) (One-time calculation)
+This is a single, constant value based on the compressor's rated performance.
+* m_dot_rated: User Manual Input. Get the "Rated Mass Flow" (e.g., 211 lbm/hr) from the compressor data sheet.
+* hz_rated: User Manual Input. Get the "Rated Speed" (e.g., 75 Hz) from the data sheet.
+* disp_ft3: User Manual Input. Get the "Compressor Displacement" (in ft^3) from the data sheet.
+* dens_rated: Property Calculation (CoolProp).
+   * Logic: As per your notes, find the density at the rated (not actual) return gas conditions.
+   * Inputs: Get the "Rated Evap Temp" and "Rated Return Gas Temp" from the User Manual Input (data sheet).
+   * Automation:
+      1. P_rated_sat = CoolProp.PropsSI('P', 'T', Rated_Evap_Temp_K, 'Q', 0, 'R290')
+      2. dens_rated = CoolProp.PropsSI('D', 'T', Rated_Return_Gas_Temp_K, 'P', P_rated_sat, 'R290')
+   * (Note: The result must be converted to lbm/ft^3 to match the other rated units).
+* rph (Rated Revs per Hour): Direct Formula.
+   * Formula: rph = hz_rated * 3600
+* m_dot_th (Theoretical Mass Flow): Direct Formula.
+   * Formula: m_dot_th = dens_rated * rph * disp_ft3
+* eta_vol (Volumetric Efficiency): Direct Formula.
+   * Formula: eta_vol = m_dot_rated / m_dot_th
+Step 2: Calculate Real-Time Performance (For every row)
+* Mass flow rate: Complex Formula.
+   * Logic: Applies the eta_vol correction to your actual measured data.
+   * Inputs:
+      1. Density: The calculated value from your "At compressor inlet" section.
+      2. eta_vol: The constant value from Step 1.
+      3. disp: Your disp_ft3 (from User Manual Input), converted to the same units as Density (e.g., cm³).
+      4. hz: Comp. rpm / 60.
+   * Formula: Mass flow rate = Density * eta_vol * disp * (Comp. rpm / 60)
+* Cooling cap: Complex Formula.
+   * Logic: Capacity = Mass Flow * (Energy In - Energy Out)
+   * Inputs:
+      1. Mass flow rate: The value calculated just above.
+      2. H_in: The "Enthalpy" from your "At compressor inlet" section (H at state T_2b).
+      3. H_out_avg: The average of the three "Enthalpy" values from your "At TXV LH/CTR/RH" sections (H at state T_4b).
+   * Formula: Cooling cap = Mass flow rate * (H_in - H_out_avg)
