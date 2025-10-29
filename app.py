@@ -12,7 +12,6 @@ from diagram_widget import DiagramWidget, PropertyEditor
 from graph_widget import GraphWidget
 from comparison_widget import ComparisonWidget
 from mapping_dialog import MappingDialog
-from live_calculation_widget import LiveCalculationWidget
 from calculations_widget import CalculationsWidget
 from ph_diagram_interactive_widget import PhDiagramInteractiveWidget
 from PyQt6.QtWidgets import QDockWidget
@@ -43,7 +42,6 @@ class MainWindow(QMainWindow):
         self.diagram_widget = DiagramWidget(self.data_manager)
         self.graph_widget = GraphWidget(self.data_manager)
         self.comparison_widget = ComparisonWidget(self.data_manager)
-        self.live_calc_widget = LiveCalculationWidget(self.data_manager)
         self.calculations_widget = CalculationsWidget(self.data_manager)
         self.ph_diagram_interactive_widget = PhDiagramInteractiveWidget(self.data_manager)
         
@@ -175,10 +173,6 @@ class MainWindow(QMainWindow):
                 # Update calculations widget (pressure threshold filtering)
                 print("[SIGNAL] Updating calculations_widget (threshold filtering)")
                 pass  # Widget updates on demand via filter button
-            elif current_widget is self.live_calc_widget:
-                # Update live calculation widget (performance calculations)
-                print("[SIGNAL] Updating live_calc_widget (performance calculations)")
-                self.live_calc_widget.update_ui()
             else:
                 # Other widgets
                 print("[SIGNAL] Updating other widget")

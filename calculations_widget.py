@@ -10,10 +10,11 @@ Provides the new unified calculation tab with:
 
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QTreeWidget, QTreeWidgetItem, QHeaderView, QLabel,
-                             QMessageBox, QApplication)
+                             QMessageBox, QApplication, QDialog)
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QFont, QColor
 import pandas as pd
+from input_dialog import InputDialog
 
 
 class NestedHeaderView(QHeaderView):
@@ -154,10 +155,42 @@ class CalculationsWidget(QWidget):
 
         title_layout.addStretch()
 
-        self.run_button = QPushButton("Run Full Calculation")
+        # Add "Enter Rated Inputs" button (Goal-2 Phase 3)
+        self.enter_inputs_button = QPushButton("⚙️ Enter Rated Inputs")
+        self.enter_inputs_button.setFont(QFont("Arial", 10))
+        self.enter_inputs_button.setFixedWidth(180)
+        self.enter_inputs_button.clicked.connect(self.open_input_dialog)
+        self.enter_inputs_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                border-radius: 4px;
+                padding: 6px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        title_layout.addWidget(self.enter_inputs_button)
+
+        self.run_button = QPushButton("▶️ Run Full Calculation")
         self.run_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
         self.run_button.setFixedWidth(200)
         self.run_button.clicked.connect(self.run_calculation)
+        self.run_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border-radius: 4px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+            }
+        """)
         title_layout.addWidget(self.run_button)
 
         layout.addLayout(title_layout)
@@ -196,8 +229,86 @@ class CalculationsWidget(QWidget):
 
         layout.addLayout(export_layout)
 
+    def open_input_dialog(self):
+        """
+        Open the input dialog for entering rated performance inputs.
+
+        This method:
+        1. Creates an InputDialog instance
+        2. Pre-fills it with existing rated_inputs from data_manager
+        3. If user clicks OK, saves the new values
+        4. Provides feedback to the user
+        """
+        dialog = InputDialog(self)
+
+        # Pre-fill with existing values from data_manager
+        dialog.set_data(self.data_manager.rated_inputs)
+
+        # Show dialog and wait for user action
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # User clicked OK - get the data
+            new_data = dialog.get_data()
+
+            # Save to data_manager
+            self.data_manager.rated_inputs = new_data
+
+            # Provide feedback
+            QMessageBox.information(
+                self,
+                "Inputs Saved",
+                "Rated performance inputs have been saved successfully.\n\n"
+                "You can now click 'Run Full Calculation' to process your data."
+            )
+
+            # Update status
+            self.status_label.setText("✓ Rated inputs saved. Ready to run calculations.")
+            self.status_label.setStyleSheet("color: green; font-size: 10pt;")
+
     def run_calculation(self):
         """Run the full batch calculation using the new unified engine."""
+
+        # GUARD CLAUSE: Check for rated inputs (Goal-2 Phase 3)
+        # This prevents the TypeError: unsupported operand type(s) for +: 'NoneType' and 'float'
+        required_fields = [
+            'm_dot_rated_lbhr',
+            'hz_rated',
+            'disp_ft3',
+            'rated_evap_temp_f',
+            'rated_return_gas_temp_f',
+        ]
+
+        rated_inputs = self.data_manager.rated_inputs
+        missing_fields = []
+
+        for field in required_fields:
+            value = rated_inputs.get(field)
+            if value is None or value == 0.0:
+                missing_fields.append(field)
+
+        if missing_fields:
+            # Show user-friendly field names
+            field_labels = {
+                'm_dot_rated_lbhr': 'Rated Mass Flow Rate',
+                'hz_rated': 'Rated Compressor Speed',
+                'disp_ft3': 'Compressor Displacement',
+                'rated_evap_temp_f': 'Rated Evaporator Temperature',
+                'rated_return_gas_temp_f': 'Rated Return Gas Temperature',
+            }
+
+            missing_labels = [field_labels.get(f, f) for f in missing_fields]
+
+            self.status_label.setText("❌ Missing rated inputs. Please enter them first.")
+            self.status_label.setStyleSheet("color: red; font-size: 10pt;")
+
+            QMessageBox.warning(
+                self,
+                "Missing Inputs",
+                "Please click the '⚙️ Enter Rated Inputs' button and fill in all "
+                "5 'Rated Performance Inputs' fields before running calculations.\n\n"
+                f"Missing or zero fields:\n" + "\n".join(f"• {label}" for label in missing_labels)
+            )
+            return  # EXIT - do not proceed with calculation
+
         self.run_button.setText("Calculating...")
         self.run_button.setEnabled(False)
         self.status_label.setText("Processing...")
@@ -230,7 +341,7 @@ class CalculationsWidget(QWidget):
                     "Calculation Error",
                     f"An error occurred during calculation:\n\n{error_msg}\n\n"
                     "Please ensure:\n"
-                    "1. Rated inputs are entered in the Inputs tab\n"
+                    "1. Rated inputs are entered (click '⚙️ Enter Rated Inputs' button)\n"
                     "2. All required sensors are mapped in the Diagram tab"
                 )
                 return
