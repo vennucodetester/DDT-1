@@ -1,6 +1,25 @@
 """
 CoolProp-based thermodynamic calculation engine for R290 refrigerant.
 Calculates state point properties and system performance metrics.
+
+⚠️ ⚠️ ⚠️ DEPRECATED - DO NOT USE ⚠️ ⚠️ ⚠️
+
+This module has been RETIRED and replaced by the unified calculation system:
+- calculation_engine.py: Core calculation functions (Step 1 & Step 2)
+- calculation_orchestrator.py: Batch processing orchestrator
+- port_resolver.py: Flexible sensor mapping
+
+The new system:
+✓ Adapts to any sensor configuration (no hardcoded column names)
+✓ Uses user-provided rated inputs for volumetric efficiency
+✓ Calculates from first principles (per Calculations-DDT.txt spec)
+✓ Supports row-by-row batch processing
+✓ Follows goal.md implementation plan
+
+This file is kept for reference only. All imports have been removed from active code.
+If you see this module being imported anywhere, it is a bug - please remove the import.
+
+Last updated: 2025-10-29 (Step 6 of goal.md migration)
 """
 
 import pandas as pd
@@ -9,6 +28,14 @@ from CoolProp.CoolProp import PropsSI
 import warnings
 
 warnings.filterwarnings('ignore')
+
+# Emit deprecation warning
+warnings.warn(
+    "coolprop_calculator.py is DEPRECATED and will be removed in a future version. "
+    "Use calculation_orchestrator.run_batch_processing() instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 class ThermodynamicCalculator:
     """

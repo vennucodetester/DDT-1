@@ -260,67 +260,79 @@ class PhDiagramPlotter:
         return fig, ax
     
     @staticmethod
-    def convert_diagram_model_to_points(calculator, filtered_df, circuit_enabled='all'):
+    def convert_diagram_model_to_points(filtered_df, circuit_enabled='all'):
         """
-        Convert calculated data from the calculator into format for plot_ph_diagrams.
-        
+        Convert calculated data from the NEW unified calculation system into format for plot_ph_diagrams.
+
+        This function now reads from the DataFrame produced by run_batch_processing() in calculation_orchestrator.py,
+        which uses the unified column naming scheme from goal.md.
+
         Args:
-            calculator: ThermodynamicCalculator instance
-            filtered_df: Filtered DataFrame with calculated columns
+            filtered_df: DataFrame with calculated columns from run_batch_processing()
+                        Expected columns:
+                        - 'Press.suc', 'Press disch' (pressures in psig)
+                        - 'Enthalpy' (compressor inlet, kJ/kg)
+                        - 'H_coil lh', 'H_coil ctr', 'H_coil rh' (evaporator outlets, kJ/kg)
+                        - 'Enthalpy_txv_lh', 'Enthalpy_txv_ctr', 'Enthalpy_txv_rh' (TXV inlets, kJ/kg)
             circuit_enabled: 'LH', 'CTR', 'RH', or 'all' for all circuits
-            
+
         Returns:
             common_points, circuit_points dicts
+            Format:
+            - common_points: {'2b': {'h': value, 'P': value}, ...}
+            - circuit_points: {'LH': {'2a': {'h': value, 'P': value}, '4b': {...}}, ...}
         """
         if filtered_df.empty:
             return {}, {}
-        
+
         # Get the first row (most recent data point) as representative
         data_row = filtered_df.iloc[0]
-        
+
+        # Helper function to convert psig to Pa
+        def psig_to_pa(psig):
+            """Convert psig to Pa (Pascals)."""
+            if psig is None:
+                return None
+            psi_abs = psig + 14.696  # Convert to absolute pressure
+            pa = psi_abs * 6894.76  # Convert to Pascals
+            return pa
+
+        # Extract pressures and convert to Pa
+        P_suc_psig = data_row.get('Press.suc')
+        P_disch_psig = data_row.get('Press disch')
+
+        P_suc_pa = psig_to_pa(P_suc_psig) if P_suc_psig is not None else None
+        P_disch_pa = psig_to_pa(P_disch_psig) if P_disch_psig is not None else None
+
+        # Common state points
         common_points = {}
+
+        # State 2b: Compressor inlet (mixed average of three evaporator outlets)
+        h_2b = data_row.get('Enthalpy')  # This is from "At compressor inlet" group
+        if h_2b is not None and P_suc_pa is not None:
+            common_points['2b'] = {'h': h_2b, 'P': P_suc_pa}
+
+        # Circuit-specific state points
         circuit_points = {'LH': {}, 'CTR': {}, 'RH': {}}
-        
-        # Common state points (2b, 3a - not circuit specific)
-        common_cols = calculator.get_output_columns(include_circuit_specific=False)
-        
-        # Map output columns to state point names
-        state_mapping = {
-            'h_2b': '2b', 's_2b': 's_2b',
-            'h_3a': '3a', 's_3a': 's_3a',
-            'h_3b': '3b', 's_3b': 's_3b',
+
+        # Map circuit names to DataFrame column suffixes
+        circuit_col_map = {
+            'LH': 'lh',
+            'CTR': 'ctr',
+            'RH': 'rh'
         }
-        
-        for col_name, point_name in state_mapping.items():
-            if col_name in data_row.index:
-                value = data_row[col_name]
-                if point_name.startswith('h_'):
-                    if 'h_' + point_name not in common_points:
-                        common_points['h_' + point_name] = {'h': value}
-                elif point_name.startswith('s_'):
-                    # Entropy not plotted but stored
-                    pass
-        
-        # Circuit-specific state points (2a, 4b for each circuit)
-        for circuit in ['LH', 'CTR', 'RH']:
-            # State 2a (TXV bulb) - circuit specific
-            h_2a_col = f'h_2a_{circuit}'
-            P_2a_col = f'P_2a_{circuit}'  # Same as P_suc
-            
-            if h_2a_col in data_row.index:
-                P_val = data_row.get(P_2a_col, data_row.get('P_suc', None))
-                if P_val is not None:
-                    circuit_points[circuit]['2a'] = {'h': data_row[h_2a_col], 'P': P_val}
-            
-            # State 4b (TXV inlet) - circuit specific
-            h_4b_col = f'h_4b_{circuit}'
-            P_4b_col = f'P_4b_{circuit}'  # Same as P_cond
-            
-            if h_4b_col in data_row.index:
-                P_val = data_row.get(P_4b_col, data_row.get('P_cond', None))
-                if P_val is not None:
-                    circuit_points[circuit]['4b'] = {'h': data_row[h_4b_col], 'P': P_val}
-        
+
+        for circuit, col_suffix in circuit_col_map.items():
+            # State 2a: Evaporator outlet (superheat point on low-pressure line)
+            h_2a = data_row.get(f'H_coil {col_suffix}')
+            if h_2a is not None and P_suc_pa is not None:
+                circuit_points[circuit]['2a'] = {'h': h_2a, 'P': P_suc_pa}
+
+            # State 4b: TXV inlet (subcooling point on high-pressure line)
+            h_4b = data_row.get(f'Enthalpy_txv_{col_suffix}')
+            if h_4b is not None and P_disch_pa is not None:
+                circuit_points[circuit]['4b'] = {'h': h_4b, 'P': P_disch_pa}
+
         return common_points, circuit_points
 
 

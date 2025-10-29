@@ -258,129 +258,123 @@ class PhDiagramWidget(QWidget):
             traceback.print_exc()
     
     def _extract_common_points(self, data_row):
-        """Extract common (non-circuit-specific) state points from data row."""
+        """
+        Extract common (non-circuit-specific) state points from data row.
+
+        Now uses NEW column names from unified calculation system (run_batch_processing).
+        """
         common_points = {}
-        
+
         # Debug: Print available columns
         print(f"\n[COMMON POINTS] Available columns: {list(data_row.index)[:20]}...")
-        
-        # State 2b (Suction line)
-        if 'h_2b' in data_row.index and 'P_suc' in data_row.index:
-            h = data_row['h_2b']
-            P = data_row['P_suc']
+
+        # Helper function to convert psig to Pa
+        def psig_to_pa(psig):
+            """Convert psig to Pa (Pascals)."""
+            if psig is None or pd.isna(psig):
+                return None
+            psi_abs = psig + 14.696  # Convert to absolute pressure
+            pa = psi_abs * 6894.76  # Convert to Pascals
+            return pa
+
+        # Get pressures (NEW column names: 'Press.suc', 'Press disch' in psig)
+        P_suc_psig = data_row.get('Press.suc')
+        P_disch_psig = data_row.get('Press disch')
+
+        P_suc_pa = psig_to_pa(P_suc_psig) if P_suc_psig is not None else None
+        P_disch_pa = psig_to_pa(P_disch_psig) if P_disch_psig is not None else None
+
+        print(f"  Pressures: P_suc={P_suc_psig} psig ({P_suc_pa} Pa), P_disch={P_disch_psig} psig ({P_disch_pa} Pa)")
+
+        # State 2b (Compressor inlet) - NEW column name: 'Enthalpy'
+        if 'Enthalpy' in data_row.index and P_suc_pa is not None:
+            h = data_row['Enthalpy']
             try:
                 h_f = float(h)
-                P_f = float(P)
                 # Validate ranges: h should be 250-550 kJ/kg, P should be 0.05e5 to 4.5e6 Pa
-                if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                    common_points['2b'] = {'h': h_f, 'P': P_f}
-                    print(f"  ✓ 2b: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa")
+                if 200 < h_f < 700 and 0.01e5 < P_suc_pa < 5e6 and pd.notna(h):
+                    common_points['2b'] = {'h': h_f, 'P': P_suc_pa}
+                    print(f"  ✓ 2b (Compressor Inlet): h={h_f:.2f} kJ/kg, P={P_suc_pa:.0f} Pa")
                 else:
-                    print(f"  ✗ 2b: Values out of range h={h_f:.2f}, P={P_f:.0f}")
+                    print(f"  ✗ 2b: Values out of range h={h_f:.2f}, P={P_suc_pa:.0f}")
             except (ValueError, TypeError) as e:
                 print(f"  ✗ 2b: Cannot convert to float - {e}")
         else:
-            print(f"  ✗ 2b: h_2b={('h_2b' in data_row.index)}, P_suc={('P_suc' in data_row.index)}")
-        
-        # State 3a (Discharge line)
-        if 'h_3a' in data_row.index and 'P_cond' in data_row.index:
-            h = data_row['h_3a']
-            P = data_row['P_cond']
-            try:
-                h_f = float(h)
-                P_f = float(P)
-                if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                    common_points['3a'] = {'h': h_f, 'P': P_f}
-                    print(f"  ✓ 3a: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa")
-                else:
-                    print(f"  ✗ 3a: Values out of range h={h_f:.2f}, P={P_f:.0f}")
-            except (ValueError, TypeError) as e:
-                print(f"  ✗ 3a: Cannot convert to float - {e}")
-        else:
-            print(f"  ✗ 3a: h_3a={('h_3a' in data_row.index)}, P_cond={('P_cond' in data_row.index)}")
-        
-        # State 3b (Condenser inlet)
-        if 'h_3b' in data_row.index and 'P_cond' in data_row.index:
-            h = data_row['h_3b']
-            P = data_row['P_cond']
-            try:
-                h_f = float(h)
-                P_f = float(P)
-                if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                    common_points['3b'] = {'h': h_f, 'P': P_f}
-                    print(f"  ✓ 3b: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa")
-                else:
-                    print(f"  ✗ 3b: Values out of range h={h_f:.2f}, P={P_f:.0f}")
-            except (ValueError, TypeError) as e:
-                print(f"  ✗ 3b: Cannot convert to float - {e}")
-        else:
-            print(f"  ✗ 3b: h_3b={('h_3b' in data_row.index)}, P_cond={('P_cond' in data_row.index)}")
-        
-        # State 4a (Condenser outlet) - if it exists
-        if 'h_4a' in data_row.index and 'P_cond' in data_row.index:
-            h = data_row['h_4a']
-            P = data_row['P_cond']
-            try:
-                h_f = float(h)
-                P_f = float(P)
-                if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                    common_points['4a'] = {'h': h_f, 'P': P_f}
-                    print(f"  ✓ 4a: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa")
-                else:
-                    print(f"  ✗ 4a: Values out of range h={h_f:.2f}, P={P_f:.0f}")
-            except (ValueError, TypeError) as e:
-                print(f"  ✗ 4a: Cannot convert to float - {e}")
-        else:
-            print(f"  ✗ 4a: h_4a={('h_4a' in data_row.index)}, P_cond={('P_cond' in data_row.index)}")
-        
+            print(f"  ✗ 2b: Enthalpy={('Enthalpy' in data_row.index)}, P_suc_pa={P_suc_pa is not None}")
+
         print(f"[COMMON POINTS] Extracted {len(common_points)} points\n")
         return common_points
     
     def _extract_circuit_points(self, data_row):
-        """Extract circuit-specific state points from data row."""
+        """
+        Extract circuit-specific state points from data row.
+
+        Now uses NEW column names from unified calculation system (run_batch_processing).
+        """
         circuit_points = {'LH': {}, 'CTR': {}, 'RH': {}}
-        
+
         print(f"\n[CIRCUIT POINTS] Extracting circuit points...")
-        
-        for circuit in ['LH', 'CTR', 'RH']:
+
+        # Helper function to convert psig to Pa
+        def psig_to_pa(psig):
+            """Convert psig to Pa (Pascals)."""
+            if psig is None or pd.isna(psig):
+                return None
+            psi_abs = psig + 14.696  # Convert to absolute pressure
+            pa = psi_abs * 6894.76  # Convert to Pascals
+            return pa
+
+        # Get pressures (NEW column names: 'Press.suc', 'Press disch' in psig)
+        P_suc_psig = data_row.get('Press.suc')
+        P_disch_psig = data_row.get('Press disch')
+
+        P_suc_pa = psig_to_pa(P_suc_psig) if P_suc_psig is not None else None
+        P_disch_pa = psig_to_pa(P_disch_psig) if P_disch_psig is not None else None
+
+        # Map circuit names to DataFrame column suffixes
+        circuit_col_map = {
+            'LH': 'lh',
+            'CTR': 'ctr',
+            'RH': 'rh'
+        }
+
+        for circuit, col_suffix in circuit_col_map.items():
             print(f"  Circuit {circuit}:")
-            
-            # State 2a (TXV bulb)
-            h_col = f'h_2a_{circuit}'
-            if h_col in data_row.index and 'P_suc' in data_row.index:
+
+            # State 2a (Evaporator outlet - superheat point on low-pressure line)
+            # NEW column name: 'H_coil lh', 'H_coil ctr', 'H_coil rh'
+            h_col = f'H_coil {col_suffix}'
+            if h_col in data_row.index and P_suc_pa is not None:
                 h = data_row[h_col]
-                P = data_row['P_suc']
                 try:
                     h_f = float(h)
-                    P_f = float(P)
-                    if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                        circuit_points[circuit]['2a'] = {'h': h_f, 'P': P_f}
-                        print(f"    ✓ 2a: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa ({P_f/1e5:.1f} bar)")
+                    if 200 < h_f < 700 and 0.01e5 < P_suc_pa < 5e6 and pd.notna(h):
+                        circuit_points[circuit]['2a'] = {'h': h_f, 'P': P_suc_pa}
+                        print(f"    ✓ 2a (Evaporator Outlet): h={h_f:.2f} kJ/kg, P={P_suc_pa:.0f} Pa ({P_suc_pa/1e5:.1f} bar)")
                     else:
-                        print(f"    ✗ 2a: Values out of range h={h_f:.2f}, P={P_f:.0f}")
+                        print(f"    ✗ 2a: Values out of range h={h_f:.2f}, P={P_suc_pa:.0f}")
                 except (ValueError, TypeError) as e:
                     print(f"    ✗ 2a: Cannot convert to float - {e}")
             else:
-                print(f"    ✗ 2a: {h_col}={h_col in data_row.index}, P_suc={('P_suc' in data_row.index)}")
-            
-            # State 4b (TXV inlet)
-            h_col = f'h_4b_{circuit}'
-            if h_col in data_row.index and 'P_cond' in data_row.index:
+                print(f"    ✗ 2a: {h_col}={h_col in data_row.index}, P_suc_pa={P_suc_pa is not None}")
+
+            # State 4b (TXV inlet - subcooling point on high-pressure line)
+            # NEW column name: 'Enthalpy_txv_lh', 'Enthalpy_txv_ctr', 'Enthalpy_txv_rh'
+            h_col = f'Enthalpy_txv_{col_suffix}'
+            if h_col in data_row.index and P_disch_pa is not None:
                 h = data_row[h_col]
-                P = data_row['P_cond']
                 try:
                     h_f = float(h)
-                    P_f = float(P)
-                    if 200 < h_f < 700 and 0.01e5 < P_f < 5e6 and pd.notna(h) and pd.notna(P):
-                        circuit_points[circuit]['4b'] = {'h': h_f, 'P': P_f}
-                        print(f"    ✓ 4b: h={h_f:.2f} kJ/kg, P={P_f:.0f} Pa ({P_f/1e5:.1f} bar)")
+                    if 200 < h_f < 700 and 0.01e5 < P_disch_pa < 5e6 and pd.notna(h):
+                        circuit_points[circuit]['4b'] = {'h': h_f, 'P': P_disch_pa}
+                        print(f"    ✓ 4b (TXV Inlet): h={h_f:.2f} kJ/kg, P={P_disch_pa:.0f} Pa ({P_disch_pa/1e5:.1f} bar)")
                     else:
-                        print(f"    ✗ 4b: Values out of range h={h_f:.2f}, P={P_f:.0f}")
+                        print(f"    ✗ 4b: Values out of range h={h_f:.2f}, P={P_disch_pa:.0f}")
                 except (ValueError, TypeError) as e:
                     print(f"    ✗ 4b: Cannot convert to float - {e}")
             else:
-                print(f"    ✗ 4b: {h_col}={h_col in data_row.index}, P_cond={('P_cond' in data_row.index)}")
-        
+                print(f"    ✗ 4b: {h_col}={h_col in data_row.index}, P_disch_pa={P_disch_pa is not None}")
+
         print(f"[CIRCUIT POINTS] Extracted {sum(len(pts) for pts in circuit_points.values())} total points\n")
         return circuit_points
     
