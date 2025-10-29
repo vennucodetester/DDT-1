@@ -43,14 +43,14 @@ class DataManager(QObject):
         # Preserve original config headers and their mapping to current CSV headers
         self.original_config_sensor_list = []
         self.config_label_mapping = {}
-        
+
         self.time_range = 'All Data'  # Options: '1 Hour', '3 Hours', '8 Hours', '16 Hours', 'All Data', 'Custom'
         self.value_aggregation = 'Average'  # Options: 'Average', 'Maximum', 'Minimum'
         self.custom_time_range = None  # Stores custom time range as {'start': timestamp, 'end': timestamp}
-        
+
         # Calculation settings
         self.refrigerant = 'R290'  # Changed from R410A to R290 (Propane) per plan.txt
-        
+
         # ON-time filtering settings
         self.on_time_threshold_psig = 40.0  # Default threshold for R290 low-temp systems
         self.on_time_filtering_enabled = True
@@ -58,7 +58,16 @@ class DataManager(QObject):
         self.on_time_row_count = 0
         self.total_row_count = 0
         self.aggregation_method = 'Average'
-        
+
+        # Rated inputs for volumetric efficiency calculation (Step 1 from spec)
+        self.rated_inputs = {
+            'm_dot_rated_lbhr': None,  # Rated mass flow rate (lbm/hr)
+            'hz_rated': None,  # Rated compressor speed (Hz)
+            'disp_ft3': None,  # Compressor displacement (ft³)
+            'rated_evap_temp_f': None,  # Rated evaporator temperature (°F)
+            'rated_return_gas_temp_f': None,  # Rated return gas temperature (°F)
+        }
+
         # Diagram model for refrigeration system designer
         self.diagram_model = {
             "components": {},
@@ -283,6 +292,15 @@ class DataManager(QObject):
             self.sensor_ranges = session_data.get('sensorRanges', {})
             # Load graph sensors (which sensors are checked for graphing)
             self.graph_sensors = set(session_data.get('graphSensors', []))
+            # Load rated inputs
+            self.rated_inputs = session_data.get('ratedInputs', {
+                'm_dot_rated_lbhr': None,
+                'hz_rated': None,
+                'disp_ft3': None,
+                'rated_evap_temp_f': None,
+                'rated_return_gas_temp_f': None,
+            })
+
             # Load diagram model - preserve existing structure
             default_diagram_model = {
                 "components": {},
