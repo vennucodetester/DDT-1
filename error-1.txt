@@ -1,0 +1,523 @@
+C:\Users\ccbefb>cd "C:\LAB DATA ANALYZER\GEMINI 2.0\DIAGNOSTIC TOOL"
+
+C:\LAB DATA ANALYZER\GEMINI 2.0\DIAGNOSTIC TOOL>python app.py
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating diagram_widget
+[DIAGRAM] update_ui() called - rebuilding scene
+[DIAGRAM] Scene rebuilt
+[APP] Main window shown and focused
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data is None or empty
+[LOAD] Found 87 smart sensor mappings
+[LOAD]   distributor_a14541.outlet_1 -> Left Coil Inlet 4
+[LOAD]   evaporator_86c76d.outlet_circuit_1 -> Left Coil Inlet 3
+[LOAD]   compressor_a91fd4.outlet -> Discharge line from comp
+[LOAD]   ... and 84 more mappings
+Loaded image from base64 (compressed)
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating diagram_widget
+[DIAGRAM] update_ui() called - rebuilding scene
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[DIAGRAM] Scene rebuilt
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[UPDATE] Updating sensor dots...
+[UPDATE] Updated 0 sensor dots and labels
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating diagram_widget
+[DIAGRAM] update_ui() called - rebuilding scene
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[DIAGRAM] Scene rebuilt
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data is None or empty
+[LOAD_CSV] CSV columns: ['Date', 'Time', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[LOAD_CSV] Found Date and Time columns, combining them...
+[LOAD_CSV] Sample Date values: ['4/13/2025', '4/13/2025', '4/13/2025']
+[LOAD_CSV] Sample Time values: ['6:02:32', '6:03:32', '6:04:32']
+[LOAD_CSV] Sample combined timestamp strings: ['4/13/2025 6:02:32', '4/13/2025 6:03:32', '4/13/2025 6:04:32']
+[LOAD_CSV] Using intelligent timestamp fixing...
+[TIMESTAMP_FIXER] Analyzing 1440 date entries...
+[TIMESTAMP_FIXER] Sample dates: ['4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025', '4/13/2025']
+[TIMESTAMP_FIXER] Detected patterns: {'has_four_digit_year': False, 'has_two_digit_year': True, 'uses_slashes': True, 'uses_dashes': False, 'uses_spaces': False, 'future_years': [], 'year_range': None}
+[TIMESTAMP_FIXER] Strategy 'as_is' succeeded
+[TIMESTAMP_FIXER] Strategy 'explicit_slash' succeeded
+[TIMESTAMP_FIXER] Strategy 'year_2024' succeeded
+[TIMESTAMP_FIXER] Strategy 'year_2023' succeeded
+[TIMESTAMP_FIXER] Strategy 'year_2022' succeeded
+[TIMESTAMP_FIXER] Selected strategy: as_is
+[TIMESTAMP_FIXER] Timestamp range: 2025-04-13 06:02:32 to 2025-04-14 06:01:31
+[TIMESTAMP_FIXER] Duration: 0 days 23:58:59
+[LOAD_CSV] Created Timestamp column from Date and Time columns
+[LOAD_CSV] Sample timestamps: [Timestamp('2025-04-13 06:02:32'), Timestamp('2025-04-13 06:03:32'), Timestamp('2025-04-13 06:04:32')]
+[LOAD_CSV] Timestamp column created successfully: datetime64[ns]
+[LOAD_CSV] Timestamp range: 2025-04-13 06:02:32 to 2025-04-14 06:01:31
+[LOAD_CSV] Duration: 0 days 23:58:59
+
+================================================================================
+[TIMESTAMP DIAGNOSTIC] Stage: DATA_LOAD
+Description: Created Timestamp column from Date+Time
+Value Type: Series
+  dtype: datetime64[ns]
+  length: 1440
+  first_value: 2025-04-13 06:02:32
+  last_value: 2025-04-14 06:01:31
+  null_count: 0
+Additional Info:
+  source_format: Date + Time strings
+  result_dtype: datetime64[ns]
+  sample_values: [Timestamp('2025-04-13 06:02:32'), Timestamp('2025-04-13 06:03:32'), Timestamp('2025-04-13 06:04:32')]
+================================================================================
+
+[LOAD_CSV] Reordered columns, new shape: (1440, 160)
+[LOAD_CSV] New column order: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[LOAD_CSV] config_path=C:/LAB DATA ANALYZER/GEMINI 2.0/DIAGNOSTIC TOOL/ID6SU12WE-7.json, config_sensor_list has 160 sensors
+[LOAD_CSV] new CSV has 159 sensors
+[LOAD_CSV] Triggering reconciliation...
+[RECONCILE_CSV] Starting reconciliation...
+[RECONCILE_CSV] Config has 160 sensors
+[RECONCILE_CSV] CSV has 159 sensors
+[RECONCILE_CSV] Matched: 159, Orphaned: 1, New: 0
+Auto-matched 0 sensor pairs
+[RECONCILE] Remapped distributor_a14541.outlet_1: Left Coil Inlet 4 -> Left Coil Inlet 4
+[RECONCILE] Remapped evaporator_86c76d.outlet_circuit_1: Left Coil Inlet 3 -> Left Coil Inlet 3
+[RECONCILE] Remapped compressor_a91fd4.outlet: Discharge line from comp -> Discharge line from comp
+[RECONCILE] Remapped compressor_a91fd4.inlet: Suction line into Comp -> Suction line into Comp
+[RECONCILE] Remapped condenser_fba9eb.outlet: Ref Temp out HeatX -> Ref Temp out HeatX
+[RECONCILE] Remapped evaporator_3408df.inlet_circuit_2: Left Coil Inlet 2 -> Left Coil Inlet 2
+[RECONCILE] Remapped evaporator_3408df.inlet_circuit_3: Left Coil Inlet 3 -> Left Coil Inlet 3
+[RECONCILE] Remapped evaporator_3408df.inlet_circuit_4: Left Coil Inlet 4 -> Left Coil Inlet 4
+[RECONCILE] Remapped evaporator_3408df.inlet_circuit_5: Left Coil Inlet 5 -> Left Coil Inlet 5
+[RECONCILE] Remapped evaporator_3408df.inlet_circuit_6: Left Coil Inlet 6 -> Left Coil Inlet 6
+[RECONCILE] Remapped evaporator_5b2824.inlet_circuit_1: CTR Coil Inlet  -> CTR Coil Inlet
+[RECONCILE] Remapped evaporator_3e6d38.inlet_circuit_1: Right Coil Inlet  -> Right Coil Inlet
+[RECONCILE] Remapped Evaporator.evaporator_5b2824.inlet_circuit_1: CTR Coil Inlet  -> CTR Coil Inlet
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_2: Left Coil Inlet 2 -> Left Coil Inlet 2
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_3: Left Coil Inlet 3 -> Left Coil Inlet 3
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_4: Left Coil Inlet 4 -> Left Coil Inlet 4
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_5: Left Coil Inlet 5 -> Left Coil Inlet 5
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_6: Left Coil Inlet 6 -> Left Coil Inlet 6
+[RECONCILE] Remapped Evaporator.evaporator_3e6d38.inlet_circuit_1: Right Coil Inlet  -> Right Coil Inlet
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_1: Discharge Air 2 in LE -> Discharge Air 2 in LE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_11: Discharge Air 2 in RE -> Discharge Air 2 in RE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_8dddb9.sensor_1: Discharge Air 2 in LE -> Discharge Air 2 in LE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_8dddb9.sensor_15: Discharge Air 2 in RE -> Discharge Air 2 in RE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_2: Discharge Air 12 in LE -> Discharge Air 12 in LE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_10: Discharge Air 12in RE -> Discharge Air 12in RE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_3: Discharge Air 24 in LE -> Discharge Air 24 in LE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_9: Discharge Air 24 in RE -> Discharge Air 24 in RE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_4: Discharge Air 42 in LE -> Discharge Air 42 in LE
+[RECONCILE] Remapped AirSensorArray.airsensorarray_42184f.sensor_8: Discharge Air 42 in RE -> Discharge Air 42 in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.1: Discharge Air 2 in LE -> Discharge Air 2 in LE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.11: Discharge Air 2 in RE -> Discharge Air 2 in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.2: Discharge Air 12 in LE -> Discharge Air 12 in LE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.10: Discharge Air 12in RE -> Discharge Air 12in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.3: Discharge Air 24 in LE -> Discharge Air 24 in LE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.9: Discharge Air 24 in RE -> Discharge Air 24 in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.4: Discharge Air 42 in LE -> Discharge Air 42 in LE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.8: Discharge Air 42 in RE -> Discharge Air 42 in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.5: Discharge Air 54 in LE -> Discharge Air 54 in LE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.7: Discharge Air 54 in RE -> Discharge Air 54 in RE
+[RECONCILE] Remapped SecondaryAir.airsensorarray_42184f.6: Discharge Air Center -> Discharge Air Center
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.11: Return Air 2 in RE -> Return Air 2 in RE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.2: Return Air 12 in LE -> Return Air 12 in LE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.10: Return Air 12in RE -> Return Air 12in RE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.3: Return Air 24 in LE -> Return Air 24 in LE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.9: Return Air 24 in RE -> Return Air 24 in RE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.4: Return Air 42 in LE -> Return Air 42 in LE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.8: Return Air 42 in RE -> Return Air 42 in RE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.5: Return Air 54 in LE -> Return Air 54 in LE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.7: Return Air 54 in RE -> Return Air 54 in RE
+[RECONCILE] Remapped ReturnAir.airsensorarray_67c33e.6: Return Air Center -> Return Air Center
+[RECONCILE] Remapped Compressor.compressor_a91fd4.outlet: Discharge line from comp -> Discharge line from comp
+[RECONCILE] Remapped Compressor.compressor_a91fd4.inlet: Suction line into Comp -> Suction line into Comp
+[RECONCILE] Remapped Condenser.condenser_fba9eb.outlet: Ref Temp out HeatX -> Ref Temp out HeatX
+[RECONCILE] Remapped ShelvingGrid.shelvinggrid_dac239.sensor_r0_bottom_c3: PS Top shelf RE Front -> PS Top shelf RE Front
+[RECONCILE] Remapped ShelvingGrid.shelvinggrid_dac239.sensor_r0_top_c0: PS Top shelf LE Rear -> PS Top shelf LE Rear
+[RECONCILE] Remapped ShelvingGrid.shelvinggrid_dac239.sensor_r0_bottom_c0: PS Top shelf LE Front -> PS Top shelf LE Front
+[RECONCILE] Remapped Distributor.distributor_c9cc9b.inlet: Into CTR Distrubutor -> Into CTR Distrubutor
+[RECONCILE] Remapped Junction.junction_fddd85.inlet_1: Liquid into main distributor -> Liquid into main distributor
+[RECONCILE] Remapped SensorBulb.sensorbulb_aece27.measurement: CTR TXV Bulb -> CTR TXV Bulb
+[RECONCILE] Remapped SensorBulb.sensorbulb_c3a80d.measurement: Left TXV Bulb -> Left TXV Bulb
+[RECONCILE] Remapped Compressor.compressor_a91fd4.DP: Liquid Pressure  -> Liquid Pressure
+[RECONCILE] Remapped Compressor.compressor_a91fd4.SP: Suction Presure  -> Suction Presure
+[RECONCILE] Remapped Compressor.compressor_a91fd4.RPM: Compressor RPM -> Compressor RPM
+[RECONCILE] Remapped TXV.txv_18cc9b.inlet: Left TXV Inlet -> Left TXV Inlet
+[RECONCILE] Remapped TXV.txv_ef0693.inlet: CTR TXV Inlet -> CTR TXV Inlet
+[RECONCILE] Remapped TXV.txv_e5856c.inlet: Right TXV Inlet  -> Right TXV Inlet
+[RECONCILE] Remapped Condenser.condenser_fba9eb.water_in_temp: Water in HeatX -> Water in HeatX
+[RECONCILE] Remapped Condenser.condenser_fba9eb.water_out_temp: Water out HeatX -> Water out HeatX
+[RECONCILE] Remapped Condenser.condenser_fba9eb.inlet: Ref Temp in HeatX -> Ref Temp in HeatX
+[RECONCILE] Remapped Evaporator.evaporator_3408df.outlet_circuit_1: Left Coil Outlet 1 -> Left Coil Outlet 1
+[RECONCILE] Remapped Evaporator.evaporator_3408df.outlet_circuit_2: Left Coil Out 2 -> Left Coil Out 2
+[RECONCILE] Remapped Evaporator.evaporator_3408df.outlet_circuit_3: Left Coil Out 3 -> Left Coil Out 3
+[RECONCILE] Remapped Evaporator.evaporator_5b2824.outlet_circuit_1: CTR Coil Outlet  -> CTR Coil Outlet
+[RECONCILE] Remapped Evaporator.evaporator_3e6d38.outlet_circuit_1: Right Coil Outlet  -> Right Coil Outlet
+[RECONCILE] Remapped Evaporator.evaporator_3408df.inlet_circuit_1: Left Coil Inlet 1 -> Left Coil Inlet 1
+[RECONCILE] Remapped Fan.fan_21a33b.sensor_0: Air in ctr evap 6 in LE -> Air in ctr evap 6 in LE
+[RECONCILE] Remapped Fan.fan_21a33b.sensor_1: Air in ctr evap 6 in RE -> Air in ctr evap 6 in RE
+[RECONCILE] Remapped Fan.fan_f924ec.sensor_0: Air in left evap 6 in LE -> Air in left evap 6 in LE
+[RECONCILE] Remapped Fan.fan_f924ec.sensor_1: Air in left evap 6 in RE -> Air in left evap 6 in RE
+[RECONCILE] Remapped Fan.fan_0fc456.sensor_0: Air in right evap 6 in LE -> Air in right evap 6 in LE
+[RECONCILE] Remapped Fan.fan_0fc456.sensor_1: Air in right evap 6 in RE -> Air in right evap 6 in RE
+[RECONCILE] Remapped Fan.fan_2ea07b.sensor_0: Air off ctr evap 6 in LE -> Air off ctr evap 6 in LE
+[RECONCILE] Remapped Fan.fan_2ea07b.sensor_1: Air off ctr evap 6 in RE -> Air off ctr evap 6 in RE
+[RECONCILE] Remapped Fan.fan_097a50.sensor_0: Air off left evap 6 in LE -> Air off left evap 6 in LE
+[RECONCILE] Remapped Fan.fan_097a50.sensor_1: Air off right evap 6 in LE -> Air off right evap 6 in LE
+[RECONCILE] Remapped Fan.fan_6bb4dd.sensor_0: Air off left evap 6 in RE -> Air off left evap 6 in RE
+[RECONCILE] Remapped Fan.fan_6bb4dd.sensor_1: Air off right evap 6 in RE -> Air off right evap 6 in RE
+[RECONCILE] Updated sensor_roles: 87 -> 87 mappings (all preserved)
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 2 in LE -> Discharge Air 2 in LE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 12 in LE -> Discharge Air 12 in LE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 24 in LE -> Discharge Air 24 in LE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 42 in LE -> Discharge Air 42 in LE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 54 in LE -> Discharge Air 54 in LE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air Center -> Discharge Air Center
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 54 in RE -> Discharge Air 54 in RE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 42 in RE -> Discharge Air 42 in RE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 24 in RE -> Discharge Air 24 in RE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 12in RE -> Discharge Air 12in RE
+[RECONCILE] Group 'PRIMARY AIR': Discharge Air 2 in RE -> Discharge Air 2 in RE
+[RECONCILE] Group 'SECONDARY': Return Air 2 in LE -> Return Air 2 in LE
+[RECONCILE] Group 'SECONDARY': Seconday Air Center -> Seconday Air Center
+[RECONCILE] Group 'SECONDARY': Seconday Air 24 in RE -> Seconday Air 24 in RE
+[RECONCILE] Group 'SECONDARY': Seconday Air 24 in LE -> Seconday Air 24 in LE
+[RECONCILE] Group 'RETURN AIR': Return Air 12 in LE -> Return Air 12 in LE
+[RECONCILE] Group 'RETURN AIR': Return Air 24 in LE -> Return Air 24 in LE
+[RECONCILE] Group 'RETURN AIR': Return Air 42 in LE -> Return Air 42 in LE
+[RECONCILE] Group 'RETURN AIR': Return Air 54 in LE -> Return Air 54 in LE
+[RECONCILE] Group 'RETURN AIR': Return Air Center -> Return Air Center
+[RECONCILE] Group 'RETURN AIR': Return Air 54 in RE -> Return Air 54 in RE
+[RECONCILE] Group 'RETURN AIR': Return Air 42 in RE -> Return Air 42 in RE
+[RECONCILE] Group 'RETURN AIR': Return Air 24 in RE -> Return Air 24 in RE
+[RECONCILE] Group 'RETURN AIR': Return Air 12in RE -> Return Air 12in RE
+[RECONCILE] Group 'RETURN AIR': Return Air 2 in RE -> Return Air 2 in RE
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 1 -> Left Coil Inlet 1
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 2 -> Left Coil Inlet 2
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 3 -> Left Coil Inlet 3
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 4 -> Left Coil Inlet 4
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 5 -> Left Coil Inlet 5
+[RECONCILE] Group 'COIL-LEFT-INLET': Left Coil Inlet 6 -> Left Coil Inlet 6
+[RECONCILE] Group 'CTR COIL INLET': CTR Coil Inlet  -> CTR Coil Inlet
+[RECONCILE] Group 'RIGHT COIL': Right Coil Inlet  -> Right Coil Inlet
+[RECONCILE] Group 'AIR IN': Air in left evap 6 in LE -> Air in left evap 6 in LE
+[RECONCILE] Group 'AIR IN': Air in left evap 6 in RE -> Air in left evap 6 in RE
+[RECONCILE] Group 'AIR IN': Air in ctr evap 6 in LE -> Air in ctr evap 6 in LE
+[RECONCILE] Group 'AIR IN': Air in ctr evap 6 in RE -> Air in ctr evap 6 in RE
+[RECONCILE] Group 'AIR IN': Air in right evap 6 in LE -> Air in right evap 6 in LE
+[RECONCILE] Group 'AIR IN': Air in right evap 6 in RE -> Air in right evap 6 in RE
+[RECONCILE] Group 'AIR OFF': Air off left evap 6 in LE -> Air off left evap 6 in LE
+[RECONCILE] Group 'AIR OFF': Air off left evap 6 in RE -> Air off left evap 6 in RE
+[RECONCILE] Group 'AIR OFF': Air off ctr evap 6 in LE -> Air off ctr evap 6 in LE
+[RECONCILE] Group 'AIR OFF': Air off ctr evap 6 in RE -> Air off ctr evap 6 in RE
+[RECONCILE] Group 'AIR OFF': Air off right evap 6 in LE -> Air off right evap 6 in LE
+[RECONCILE] Group 'AIR OFF': Air off right evap 6 in RE -> Air off right evap 6 in RE
+[RECONCILE] Group 'PROD SIM': PS Top shelf LE Rear -> PS Top shelf LE Rear
+[RECONCILE] Group 'PROD SIM': PS Top shelf LE Front -> PS Top shelf LE Front
+[RECONCILE] Group 'PROD SIM': PS Top shelf 48 LE Rear -> PS Top shelf 48 LE Rear
+[RECONCILE] Group 'PROD SIM': PS Top shelf 48 LE Front -> PS Top shelf 48 LE Front
+[RECONCILE] Group 'PROD SIM': PS Top shelf 48 RE Rear -> PS Top shelf 48 RE Rear
+[RECONCILE] Group 'PROD SIM': PS Top shelf 48 RE Front -> PS Top shelf 48 RE Front
+[RECONCILE] Group 'PROD SIM': PS Top shelf RE Front -> PS Top shelf RE Front
+[RECONCILE] Group 'PROD SIM': PS Second shelf LE Front -> PS Second shelf LE Front
+[RECONCILE] Group 'PROD SIM': PS Second shelf 48 LE Rear -> PS Second shelf 48 LE Rear
+[RECONCILE] Group 'PROD SIM': PS Second shelf 48 LE Front -> PS Second shelf 48 LE Front
+[RECONCILE] Group 'PROD SIM': PS Second shelf 48 RE Rear -> PS Second shelf 48 RE Rear
+[RECONCILE] Group 'PROD SIM': PS Second shelf 48 RE Front -> PS Second shelf 48 RE Front
+[RECONCILE] Group 'PROD SIM': PS Second shelf RE Front -> PS Second shelf RE Front
+[RECONCILE] Group 'PROD SIM': PS Third shelf LE Front -> PS Third shelf LE Front
+[RECONCILE] Group 'PROD SIM': PS Third shelf 48 LE Rear -> PS Third shelf 48 LE Rear
+[RECONCILE] Group 'PROD SIM': PS Third shelf 48 LE Front -> PS Third shelf 48 LE Front
+[RECONCILE] Group 'PROD SIM': PS Third shelf 48 RE Rear -> PS Third shelf 48 RE Rear
+[RECONCILE] Group 'PROD SIM': PS Third shelf 48 RE Front -> PS Third shelf 48 RE Front
+[RECONCILE] Group 'PROD SIM': PS Third shelf RE Front -> PS Third shelf RE Front
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf LE Front -> PS Fourth shelf LE Front
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf 48 LE Rear -> PS Fourth shelf 48 LE Rear
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf 48 LE Front -> PS Fourth shelf 48 LE Front
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf 48 RE Rear -> PS Fourth shelf 48 RE Rear
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf 48 RE Front -> PS Fourth shelf 48 RE Front
+[RECONCILE] Group 'PROD SIM': PS Fourth shelf RE Front -> PS Fourth shelf RE Front
+[RECONCILE] Group 'PROD SIM': PS BC LE Front -> PS BC LE Front
+[RECONCILE] Group 'PROD SIM': PS BC 48 LE Rear -> PS BC 48 LE Rear
+[RECONCILE] Group 'PROD SIM': PS BC 48 LE Front -> PS BC 48 LE Front
+[RECONCILE] Group 'PROD SIM': PS BC 48 RE Rear -> PS BC 48 RE Rear
+[RECONCILE] Group 'PROD SIM': PS BC 48 RE Front -> PS BC 48 RE Front
+[RECONCILE] Group 'PROD SIM': PS BC RE Front -> PS BC RE Front
+[RECONCILE] Group 'TXV INLET': Left TXV Inlet -> Left TXV Inlet
+[RECONCILE] Group 'TXV INLET': CTR TXV Inlet -> CTR TXV Inlet
+[RECONCILE] Group 'TXV BULB': Left TXV Bulb -> Left TXV Bulb
+[RECONCILE] Group 'TXV BULB': CTR TXV Bulb -> CTR TXV Bulb
+[RECONCILE] Group 'DISTR-INLET': Into CTR Distrubutor -> Into CTR Distrubutor
+[RECONCILE] Group 'DISTR-INLET': Liquid into main distributor -> Liquid into main distributor
+[RECONCILE] Group 'COMPRESSOR': Compressor RPM -> Compressor RPM
+[RECONCILE] Group 'COMPRESSOR': Total L1 Watts -> Total L1 Watts
+[RECONCILE] Group 'COMPRESSOR': Total L2 Watts -> Total L2 Watts
+[RECONCILE] Group 'COMPRESSOR': Total L3 Watts -> Total L3 Watts
+[RECONCILE] Group 'COMPRESSOR': Total Watts -> Total Watts
+[RECONCILE] Group 'COMPRESSOR': Total Volts -> Total Volts
+[RECONCILE] Group 'COMPRESSOR': Total Amps -> Total Amps
+[RECONCILE] Group 'PRESSURE': Suction Presure  -> Suction Presure
+[RECONCILE] Group 'PRESSURE': Liquid Pressure  -> Liquid Pressure
+[RECONCILE] Group 'SUPER HEAT': Left S.H. -> Left S.H.
+[RECONCILE] Group 'SUPER HEAT': CTR S.H. -> CTR S.H.
+[RECONCILE] Group 'SUPER HEAT': Right S.H. -> Right S.H.
+[RECONCILE] Group '_ungrouped': PS Fifth shelf 48 RE Front -> PS Fifth shelf 48 RE Front
+[RECONCILE] Group '_ungrouped': PS Third shelf LE Rear  -> PS Third shelf LE Rear
+[RECONCILE] Group '_ungrouped': PS Fifth shelf LE Front -> PS Fifth shelf LE Front
+[RECONCILE] Group '_ungrouped': Inlet of filter drier -> Inlet of filter drier
+[RECONCILE] Group '_ungrouped': PRESERVED Time
+[RECONCILE] Group '_ungrouped': Unnamed: 123 -> Unnamed: 123
+[RECONCILE] Group '_ungrouped': PS Second shelf LE Rear  -> PS Second shelf LE Rear
+[RECONCILE] Group '_ungrouped': PS Fourth shelf RE Rear  -> PS Fourth shelf RE Rear
+[RECONCILE] Group '_ungrouped': Right TXV Bulb  -> Right TXV Bulb
+[RECONCILE] Group '_ungrouped': PS Third shelf RE Rear  -> PS Third shelf RE Rear
+[RECONCILE] Group '_ungrouped': Right Coil Outlet  -> Right Coil Outlet
+[RECONCILE] Group '_ungrouped': PS BC RE Rear  -> PS BC RE Rear
+[RECONCILE] Group '_ungrouped': Into Left Distrubutor  -> Into Left Distrubutor
+[RECONCILE] Group '_ungrouped': L2 Amps -> L2 Amps
+[RECONCILE] Group '_ungrouped': L3 Volts -> L3 Volts
+[RECONCILE] Group '_ungrouped': L2 Watts -> L2 Watts
+[RECONCILE] Group '_ungrouped': PS Fifth shelf RE Rear  -> PS Fifth shelf RE Rear
+[RECONCILE] Group '_ungrouped': AVG Air In -> AVG Air In
+[RECONCILE] Group '_ungrouped': PS BC LE Rear  -> PS BC LE Rear
+[RECONCILE] Group '_ungrouped': PS Fifth shelf LE Rear  -> PS Fifth shelf LE Rear
+[RECONCILE] Group '_ungrouped': L1 Volts -> L1 Volts
+[RECONCILE] Group '_ungrouped': L2 Volts -> L2 Volts
+[RECONCILE] Group '_ungrouped': PS Fifth shelf 48 RE Rear -> PS Fifth shelf 48 RE Rear
+[RECONCILE] Group '_ungrouped': Right TXV Inlet  -> Right TXV Inlet
+[RECONCILE] Group '_ungrouped': PS Fourth shelf LE Rear  -> PS Fourth shelf LE Rear
+[RECONCILE] Group '_ungrouped': L1 Watts -> L1 Watts
+[RECONCILE] Group '_ungrouped': Into Right Distributor  -> Into Right Distributor
+[RECONCILE] Group '_ungrouped': PS Fifth shelf 48 LE Front -> PS Fifth shelf 48 LE Front
+[RECONCILE] Group '_ungrouped': CTR Coil Outlet  -> CTR Coil Outlet
+[RECONCILE] Group '_ungrouped': PS Fifth shelf 48 LE Rear -> PS Fifth shelf 48 LE Rear
+[RECONCILE] Group '_ungrouped': PS Top shelf RE Rear  -> PS Top shelf RE Rear
+[RECONCILE] Group '_ungrouped': AVG Air Off -> AVG Air Off
+[RECONCILE] Group '_ungrouped': L3 Amps -> L3 Amps
+[RECONCILE] Group '_ungrouped': Left Coil Outlet 1 -> Left Coil Outlet 1
+[RECONCILE] Group '_ungrouped': L3 Watts -> L3 Watts
+[RECONCILE] Group '_ungrouped': Left Coil Out 2 -> Left Coil Out 2
+[RECONCILE] Group '_ungrouped': PS Second shelf RE Rear  -> PS Second shelf RE Rear
+[RECONCILE] Group '_ungrouped': Left Coil Out 3 -> Left Coil Out 3
+[RECONCILE] Group '_ungrouped': PS Fifth shelf RE Front -> PS Fifth shelf RE Front
+[RECONCILE] Group '_ungrouped': L1 Amps -> L1 Amps
+[RECONCILE] Group '_ungrouped': Case inlet after filter drier -> Case inlet after filter drier
+[RECONCILE] Updated sensor_groups (all mappings preserved)
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating diagram_widget
+[DIAGRAM] update_ui() called - rebuilding scene
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[DIAGRAM] Scene rebuilt
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[UPDATE] Updating sensor dots...
+[UPDATE] Updated 0 sensor dots and labels
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating diagram_widget
+[DIAGRAM] update_ui() called - rebuilding scene
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[REBUILD] Ports for Evaporator - circuits=6, port_spacing=20
+[SHELVING] Created grid with 48 sensors (4 cols x 6 rows x 2 edges)
+[SHELVING] Updated shape: 3x6, size: 900x460
+[SHELVING] Updated shape: 3x6, size: 900x460
+[DIAGRAM] Scene rebuilt
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 1
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 1' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 1
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 2
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 2' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 2
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 3
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 3' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 3
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 4
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 4' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 4
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 5
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 5' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 5
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet 6
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor 'CTR Coil Outlet 6' not found in filtered data columns
+[SENSOR_VALUE] Returning None for sensor: CTR Coil Outlet 6
+[SENSOR_VALUE] Getting value for sensor: CTR Coil Outlet
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[SENSOR_VALUE] Filtered data status: True
+[SENSOR_VALUE] Filtered data shape: (1440, 160)
+[SENSOR_VALUE] Filtered data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta', 'Ambient Dry Bulb Tb', 'Ambient Wet Bulb', 'Discharge Air 2 in LE', 'Discharge Air 12 in LE', 'Discharge Air 24 in LE', 'Discharge Air 42 in LE', 'Discharge Air 54 in LE', 'Discharge Air Center', 'Discharge Air 54 in RE', 'Discharge Air 42 in RE', 'Discharge Air 24 in RE', 'Discharge Air 12in RE', 'Discharge Air 2 in RE', 'Seconday Air 24 in LE', 'Seconday Air Center', 'Seconday Air 24 in RE', 'Return Air 2 in LE', 'Return Air 12 in LE', 'Return Air 24 in LE', 'Return Air 42 in LE', 'Return Air 54 in LE', 'Return Air Center', 'Return Air 54 in RE', 'Return Air 42 in RE', 'Return Air 24 in RE', 'Return Air 12in RE', 'Return Air 2 in RE', 'Left TXV Inlet', 'Into Left Distrubutor ', 'Left TXV Bulb', 'Left Coil Inlet 1', 'Left Coil Inlet 2', 'Left Coil Inlet 3', 'Left Coil Inlet 4', 'Left Coil Inlet 5', 'Left Coil Inlet 6', 'Left Coil Outlet 1', 'Left Coil Out 2', 'Left Coil Out 3', 'CTR TXV Inlet', 'Into CTR Distrubutor', 'CTR TXV Bulb', 'CTR Coil Inlet ', 'CTR Coil Outlet ', 'Right TXV Inlet ', 'Into Right Distributor ', 'Right TXV Bulb ', 'Right Coil Inlet ', 'Right Coil Outlet ', 'Air in left evap 6 in LE', 'Air in left evap 6 in RE', 'Air in ctr evap 6 in LE', 'Air in ctr evap 6 in RE', 'Air in right evap 6 in LE', 'Suction line into Comp', 'Air in right evap 6 in RE', 'Air off left evap 6 in LE', 'Air off left evap 6 in RE', 'Air off ctr evap 6 in LE', 'Air off ctr evap 6 in RE', 'Air off right evap 6 in LE', 'Air off right evap 6 in RE', 'PS Top shelf LE Rear', 'PS Top shelf LE Front', 'PS Top shelf 48 LE Rear', 'PS Top shelf 48 LE Front', 'PS Top shelf 48 RE Rear', 'PS Top shelf 48 RE Front', 'PS Top shelf RE Rear ', 'PS Top shelf RE Front', 'PS Second shelf LE Rear ', 'PS Second shelf LE Front', 'PS Second shelf 48 LE Rear', 'PS Second shelf 48 LE Front', 'PS Second shelf 48 RE Rear', 'PS Second shelf 48 RE Front', 'PS Second shelf RE Rear ', 'PS Second shelf RE Front', 'PS Third shelf LE Rear ', 'PS Third shelf LE Front', 'PS Third shelf 48 LE Rear', 'PS Third shelf 48 LE Front', 'PS Third shelf 48 RE Rear', 'PS Third shelf 48 RE Front', 'PS Third shelf RE Rear ', 'PS Third shelf RE Front', 'PS Fourth shelf LE Rear ', 'PS Fourth shelf LE Front', 'PS Fourth shelf 48 LE Rear', 'PS Fourth shelf 48 LE Front', 'PS Fourth shelf 48 RE Rear', 'PS Fourth shelf 48 RE Front', 'PS Fourth shelf RE Rear ', 'PS Fourth shelf RE Front', 'PS Fifth shelf LE Rear ', 'PS Fifth shelf LE Front', 'PS Fifth shelf 48 LE Rear', 'PS Fifth shelf 48 LE Front', 'PS Fifth shelf 48 RE Rear', 'PS Fifth shelf 48 RE Front', 'PS Fifth shelf RE Rear ', 'PS Fifth shelf RE Front', 'PS BC LE Rear ', 'PS BC LE Front', 'PS BC 48 LE Rear', 'PS BC 48 LE Front', 'PS BC 48 RE Rear', 'PS BC 48 RE Front', 'PS BC RE Rear ', 'PS BC RE Front', 'Water in HeatX', 'Water out HeatX', 'Ref Temp in HeatX', 'Ref Temp out HeatX', 'Case inlet after filter drier', 'Inlet of filter drier', 'Discharge line from comp', 'Unnamed: 123', 'Rear Wall', 'Ceiling', 'Front Wall', 'Left Wall', 'Right Wall', 'Liquid into main distributor', 'Suction Presure ', 'Liquid Pressure ', 'Compressor RPM', 'Total Water Flow Meter', 'L1 Volts', 'L1 Amps', 'L1 Watts', 'L2 Volts', 'L2 Amps', 'L2 Watts', 'L3 Volts', 'L3 Amps', 'L3 Watts', 'Total Volts', 'Total Amps', 'Total Watts', '120V Volts', '120V Amps', '120V Watts', 'Left S.H.', 'CTR S.H.', 'Right S.H.', 'Evap', 'Liqcond', 'AVG Prod Temp', 'AVG Air In', 'AVG Air Off', 'Total L1 Watts', 'Total L2 Watts', 'Total L3 Watts', 'Total Case Watts']
+[SENSOR_VALUE] Sensor found in filtered data
+[SENSOR_VALUE] Sensor data after dropna: 1440 values
+[SENSOR_VALUE] Average calculated: 40.234781242361116
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating calculations_widget (threshold filtering)
+QWidget::paintEngine: Should no longer be called
+QPainter::begin: Paint device returned engine == 0, type: 1
+QPainter::save: Painter not active
+QPainter::setFont: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::restore: Unbalanced save/restore
+[FILTERED_DATA] Called with time_range: All Data
+[FILTERED_DATA] CSV data shape: (1440, 160)
+[FILTERED_DATA] CSV data columns: ['Timestamp', 'Run Time', 'Defrost case 1', 'Always off', 'Ambient Dry Bulb Ta']...
+[FILTERED_DATA] Returning all data (1440 rows)
+[CALCULATIONS] Starting calculation on 1440 rows...
+[BATCH PROCESSING] Starting batch processing on 1440 rows...
+[BATCH PROCESSING] ERROR in Step 1 (eta_vol): Calculation error: unsupported operand type(s) for +: 'NoneType' and 'float'
+[BATCH PROCESSING] Please enter rated inputs in the Inputs tab.
+QWidget::paintEngine: Should no longer be called
+QPainter::begin: Paint device returned engine == 0, type: 1
+QPainter::save: Painter not active
+QPainter::setFont: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::restore: Unbalanced save/restore
+QWidget::paintEngine: Should no longer be called
+QPainter::begin: Paint device returned engine == 0, type: 1
+QPainter::save: Painter not active
+QPainter::setFont: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::setPen: Painter not active
+QPainter::drawRects: Painter not active
+QPainter::restore: Unbalanced save/restore
+[SIGNAL] update_active_tab() called
+[SIGNAL] Updating other widget
