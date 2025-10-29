@@ -60,7 +60,10 @@ class DataManager(QObject):
         self.aggregation_method = 'Average'
 
         # Rated inputs for volumetric efficiency calculation (Step 1 from spec)
+        # Updated for Goal-2C: Added rated_capacity and rated_power (7 total)
         self.rated_inputs = {
+            'rated_capacity_btu_hr': None,  # Rated cooling capacity (BTU/hr)
+            'rated_power_w': None,  # Rated power consumption (W)
             'm_dot_rated_lbhr': None,  # Rated mass flow rate (lbm/hr)
             'hz_rated': None,  # Rated compressor speed (Hz)
             'disp_ft3': None,  # Compressor displacement (ft³)

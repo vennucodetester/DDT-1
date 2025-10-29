@@ -487,13 +487,23 @@ def run_batch_processing(
 
     eta_vol_results = calculate_volumetric_efficiency(rated_inputs, refrigerant)
 
+    # Goal-2C: Handle CoolProp errors (fatal)
     if 'error' in eta_vol_results:
         print(f"[BATCH PROCESSING] ERROR in Step 1 (eta_vol): {eta_vol_results['error']}")
-        print("[BATCH PROCESSING] Please enter rated inputs in the Inputs tab.")
+        print("[BATCH PROCESSING] Please ensure CoolProp is installed.")
         return pd.DataFrame({'error': [eta_vol_results['error']]})
 
-    eta_vol = eta_vol_results.get('eta_vol', 0)
-    print(f"[BATCH PROCESSING] Step 1 complete: eta_vol = {eta_vol:.4f}")
+    # Goal-2C: Handle graceful degradation warnings (non-fatal)
+    eta_vol = eta_vol_results.get('eta_vol', 0.85)
+    method = eta_vol_results.get('method', 'calculated')
+    warnings = eta_vol_results.get('warnings', [])
+
+    if method == 'default':
+        print(f"[BATCH PROCESSING] ⚠️  Using default eta_vol = {eta_vol:.4f}")
+        for warning in warnings:
+            print(f"[BATCH PROCESSING] ⚠️  {warning}")
+    else:
+        print(f"[BATCH PROCESSING] ✓ Step 1 complete: eta_vol = {eta_vol:.4f} (calculated from rated inputs)")
 
     # === STEP 2: GET COMPRESSOR SPECS ===
     # Convert displacement from user input (ft³) to m³ for the engine

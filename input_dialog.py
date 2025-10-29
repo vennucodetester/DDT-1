@@ -1,10 +1,11 @@
 """
 Input Dialog for Rated Performance Inputs
 
-Provides a clean popup dialog for entering the 5 rated performance inputs
+Provides a clean popup dialog for entering the 7 rated performance inputs
 required for volumetric efficiency calculations.
 
 Created as part of Goal-2 implementation to replace the confusing inputs_widget.py tab.
+Updated for Goal-2C to include rated capacity and rated power.
 """
 
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QDoubleSpinBox,
@@ -17,12 +18,14 @@ class InputDialog(QDialog):
     """
     Dialog for entering rated performance inputs from manufacturer's data sheet.
 
-    This dialog collects the 5 required rated performance inputs:
-    1. Rated Mass Flow Rate (lbm/hr)
-    2. Rated Compressor Speed (Hz)
-    3. Compressor Displacement (ft³)
-    4. Rated Evaporator Temperature (°F)
-    5. Rated Return Gas Temperature (°F)
+    This dialog collects the 7 required rated performance inputs:
+    1. Rated Cooling Capacity (BTU/hr)
+    2. Rated Power Consumption (W)
+    3. Rated Mass Flow Rate (lbm/hr)
+    4. Rated Compressor Speed (Hz)
+    5. Compressor Displacement (ft³)
+    6. Rated Evaporator Temperature (°F)
+    7. Rated Return Gas Temperature (°F)
 
     These values are used to calculate volumetric efficiency (eta_vol) in the
     unified calculation engine.
@@ -30,6 +33,8 @@ class InputDialog(QDialog):
 
     # Field definitions: (internal_name, user-friendly_label)
     FIELD_DEFINITIONS = [
+        ('rated_capacity_btu_hr', 'Rated Cooling Capacity (BTU/hr)'),
+        ('rated_power_w', 'Rated Power Consumption (W)'),
         ('m_dot_rated_lbhr', 'Rated Mass Flow Rate (lbm/hr)'),
         ('hz_rated', 'Rated Compressor Speed (Hz)'),
         ('disp_ft3', 'Compressor Displacement (ft³)'),

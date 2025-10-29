@@ -576,6 +576,9 @@ def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290
 
     This is a one-time calculation based on user manual inputs (rated values).
 
+    Goal-2C: Implements graceful degradation - returns default eta_vol (0.85)
+    with warnings if rated inputs are missing.
+
     Args:
         rated_inputs: Dict with keys:
             - m_dot_rated_lbhr: Rated mass flow rate (lbm/hr)
@@ -586,27 +589,49 @@ def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290
         refrigerant: Refrigerant name (default 'R290')
 
     Returns:
-        Dict with eta_vol and intermediate values, or {'error': message}
+        Dict with:
+        - eta_vol: float (calculated or default 0.85)
+        - method: 'calculated' | 'default'
+        - warnings: list of warning messages (empty if calculated)
+        - (other intermediate values if calculated successfully)
     """
     if CP is None:
         return {'error': 'CoolProp not available'}
 
+    # 1. Get User Inputs
+    m_dot_rated_lb_hr = rated_inputs.get('m_dot_rated_lbhr', 0)
+    rated_evap_f = rated_inputs.get('rated_evap_temp_f', 0)
+    rated_return_f = rated_inputs.get('rated_return_gas_temp_f', 0)
+    rated_disp_ft3 = rated_inputs.get('disp_ft3', 0)
+    rated_hz = rated_inputs.get('hz_rated', 0)
+
+    # Check if all required inputs are present
+    missing = []
+    if not m_dot_rated_lb_hr or m_dot_rated_lb_hr == 0:
+        missing.append('Rated Mass Flow Rate')
+    if not rated_hz or rated_hz == 0:
+        missing.append('Rated Compressor Speed')
+    if not rated_disp_ft3 or rated_disp_ft3 == 0:
+        missing.append('Compressor Displacement')
+    if not rated_evap_f or rated_evap_f == 0:
+        missing.append('Rated Evaporator Temperature')
+    if not rated_return_f or rated_return_f == 0:
+        missing.append('Rated Return Gas Temperature')
+
+    # GRACEFUL DEGRADATION: Use default if inputs missing
+    if missing:
+        return {
+            'eta_vol': 0.85,
+            'method': 'default',
+            'warnings': [
+                f"Missing rated inputs: {', '.join(missing)}",
+                "Using default volumetric efficiency (0.85)",
+                "Mass flow and cooling capacity calculations will be approximate"
+            ]
+        }
+
+    # Try to calculate
     try:
-        # 1. Get User Inputs
-        m_dot_rated_lb_hr = rated_inputs.get('m_dot_rated_lbhr', 0)
-        rated_evap_f = rated_inputs.get('rated_evap_temp_f', 0)
-        rated_return_f = rated_inputs.get('rated_return_gas_temp_f', 0)
-        rated_disp_ft3 = rated_inputs.get('disp_ft3', 0)
-        rated_hz = rated_inputs.get('hz_rated', 0)
-
-        # Validate inputs
-        if m_dot_rated_lb_hr == 0:
-            return {'error': 'Rated mass flow rate cannot be zero'}
-        if rated_hz == 0:
-            return {'error': 'Rated speed cannot be zero'}
-        if rated_disp_ft3 == 0:
-            return {'error': 'Compressor displacement cannot be zero'}
-
         # 2. Calculate Theoretical Mass Flow (m_dot_th)
         # Get saturation pressure at rated evaporator temperature
         rated_evap_k = f_to_k(rated_evap_f)
@@ -625,12 +650,22 @@ def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290
 
         # 3. Calculate Volumetric Efficiency
         if m_dot_th_lb_hr == 0:
-            return {'error': 'Theoretical mass flow is zero'}
+            # GRACEFUL DEGRADATION: Calculation failed, use default
+            return {
+                'eta_vol': 0.85,
+                'method': 'default',
+                'warnings': [
+                    "Theoretical mass flow is zero - cannot calculate eta_vol",
+                    "Using default volumetric efficiency (0.85)"
+                ]
+            }
 
         eta_vol = m_dot_rated_lb_hr / m_dot_th_lb_hr
 
         return {
             'eta_vol': eta_vol,
+            'method': 'calculated',
+            'warnings': [],
             'm_dot_rated_lb_hr': m_dot_rated_lb_hr,
             'm_dot_th_lb_hr': m_dot_th_lb_hr,
             'dens_rated_lb_ft3': dens_rated_lb_ft3,
@@ -639,7 +674,15 @@ def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290
             'rph': rph,
         }
     except Exception as e:
-        return {'error': f'Calculation error: {str(e)}'}
+        # GRACEFUL DEGRADATION: Exception occurred, use default
+        return {
+            'eta_vol': 0.85,
+            'method': 'default',
+            'warnings': [
+                f"Error calculating eta_vol: {str(e)}",
+                "Using default volumetric efficiency (0.85)"
+            ]
+        }
 
 
 def calculate_row_performance(
@@ -704,11 +747,14 @@ def calculate_row_performance(
         t_3b_f = get_val('T_3b')  # Condenser inlet
         t_4a_f = get_val('T_4a')  # Condenser outlet
 
-        # Validate critical values
+        # Validate critical pressure values
+        # Goal-2C: NO degradation for sensors - just clear error messages
         if p_suc_psig is None or p_disch_psig is None:
-            return pd.Series({'error': 'Missing pressure data'})
-        if rpm is None or rpm == 0:
-            return pd.Series({'error': 'Missing or zero RPM'})
+            return pd.Series({'error': 'Missing pressure sensors - Please map suction and discharge pressure sensors in the Diagram tab'})
+
+        # Goal-2C: RPM is NOT critical - only needed for mass flow & cooling capacity
+        # 43/47 columns (91.5%) can still be calculated without RPM
+        # We'll calculate what we can and skip mass flow/cooling capacity if RPM missing
 
         # ===== 2. CONVERT UNITS (PSIG → Pa, °F → K) =====
         p_suc_pa = psig_to_pa(p_suc_psig)
@@ -830,7 +876,9 @@ def calculate_row_performance(
             results['Enthalpy_txv_rh'] = h_4b_rh / 1000
 
         # ===== 10. CALCULATE FINAL PERFORMANCE (MASS FLOW & COOLING CAP) =====
-        if rho_2b and eta_vol > 0:
+        # Goal-2C: Only calculate mass flow & cooling capacity if RPM is available
+        # These are the ONLY 2 columns (out of 47) that require RPM
+        if rpm is not None and rpm > 0 and rho_2b and eta_vol > 0:
             disp_m3 = comp_specs.get('displacement_m3', 0)
             if disp_m3 > 0:
                 # Mass flow rate in kg/s
@@ -853,6 +901,8 @@ def calculate_row_performance(
 
                     results['Mass flow rate'] = mass_flow_kgs * 2.20462 * 3600  # to lb/hr
                     results['Cooling cap'] = cooling_cap_w * 3.41214  # to BTU/hr
+        # If RPM is missing, mass flow and cooling capacity will simply not appear in results
+        # All other calculations (43/47 columns) will still complete successfully
 
         return pd.Series(results)
 
