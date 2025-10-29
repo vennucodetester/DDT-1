@@ -393,6 +393,7 @@ def calculate_per_circuit(data_manager, circuit_label: str) -> Dict:
 
 # Master list of all sensor roles needed for the new calculation
 # Maps internal role keys to (ComponentType, PortName, {optional property filters})
+# UPDATED: Added 8 missing sensor roles (T_1a/T_1b for circuits + water temps)
 REQUIRED_SENSOR_ROLES = {
     # Pressures
     'P_suc': [('Compressor', 'SP')],
@@ -405,14 +406,26 @@ REQUIRED_SENSOR_ROLES = {
     'T_3b': [('Condenser', 'inlet')],
     'T_4a': [('Condenser', 'outlet')],
 
-    # Circuit-specific evaporator outlets (state 2a)
-    'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
-    'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
-    'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
+    # Condenser water temps (ADDED - were missing)
+    'T_waterin': [('Condenser', 'water_inlet')],
+    'T_waterout': [('Condenser', 'water_outlet')],
 
-    # Circuit-specific TXV inlets (state 4b)
+    # LH circuit (ADDED T_1a-lh, T_1b-lh - were missing)
+    'T_1a-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],
+    'T_1b-lh': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Left'})],
+    'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
     'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
+
+    # CTR circuit (ADDED T_1a-ctr, T_1b-ctr - were missing)
+    'T_1a-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],
+    'T_1b-ctr': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Center'})],
+    'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
     'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
+
+    # RH circuit (ADDED T_1a-rh, T_1c-rh - were missing)
+    'T_1a-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],
+    'T_1c-rh': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Right'})],
+    'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
     'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
 }
 
