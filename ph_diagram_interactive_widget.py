@@ -133,7 +133,12 @@ class PhDiagramInteractiveWidget(QWidget):
         self.btn_export = QPushButton("💾 Export as PNG")
         self.btn_export.clicked.connect(self.on_export_diagram)
         layout.addWidget(self.btn_export)
-        
+
+        self.btn_info = QPushButton("ℹ️ Column Info")
+        self.btn_info.clicked.connect(self.on_show_column_info)
+        self.btn_info.setToolTip("Show which columns are being plotted for each cycle point")
+        layout.addWidget(self.btn_info)
+
         layout.addStretch()
         panel.setLayout(layout)
         return panel
@@ -610,7 +615,7 @@ class PhDiagramInteractiveWidget(QWidget):
             "ph_diagram.png",
             "PNG Images (*.png);;PDF Files (*.pdf);;SVG Files (*.svg)"
         )
-        
+
         if file_path:
             try:
                 self.figure.savefig(file_path, dpi=300, bbox_inches='tight', facecolor='white')
@@ -622,3 +627,173 @@ class PhDiagramInteractiveWidget(QWidget):
                 QMessageBox.critical(self, "Error", f"Failed to export: {str(e)}")
                 self.status_label.setText(f"❌ Export failed")
                 self.status_label.setStyleSheet("color: red;")
+
+    def on_show_column_info(self):
+        """Display information about which columns are plotted for each cycle point."""
+        info_text = """
+<h2 style='color: #1f2937;'>P-h Diagram Column Mapping</h2>
+<p style='color: #6b7280;'>This shows which Excel columns from Calculations-DDT.xlsx are used to plot each state point and cycle line in the P-h diagram.</p>
+
+<hr>
+
+<h3 style='color: #3b82f6;'>Pressure Levels (Horizontal Lines)</h3>
+<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
+<tr style='background-color: #f3f4f6;'>
+    <td><b>Pressure Level</b></td>
+    <td><b>Excel Column</b></td>
+    <td><b>Fallback (old name)</b></td>
+</tr>
+<tr>
+    <td>Suction Pressure (Low)</td>
+    <td><code>P_suction</code></td>
+    <td><code>Press.suc</code></td>
+</tr>
+<tr>
+    <td>Discharge Pressure (High)</td>
+    <td><code>P_disch</code></td>
+    <td><code>Press disch</code></td>
+</tr>
+</table>
+
+<hr>
+
+<h3 style='color: #16a34a;'>Common State Points (Black Dots)</h3>
+<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
+<tr style='background-color: #f3f4f6;'>
+    <td><b>Point</b></td>
+    <td><b>Description</b></td>
+    <td><b>Excel Column(s)</b></td>
+    <td><b>Fallback (old)</b></td>
+</tr>
+<tr>
+    <td><b>2b</b></td>
+    <td>Compressor Inlet (Suction Line)</td>
+    <td><code>T_2b</code> + <code>P_suction</code></td>
+    <td><code>Comp.in</code></td>
+</tr>
+<tr>
+    <td><b>3a</b></td>
+    <td>Compressor Outlet (Discharge Line)</td>
+    <td><code>T_3a</code> + <code>P_disch</code></td>
+    <td><code>T comp outlet</code></td>
+</tr>
+<tr>
+    <td><b>3b</b></td>
+    <td>Condenser Inlet</td>
+    <td><code>T_3b</code> + <code>P_disch</code></td>
+    <td><code>T cond inlet</code></td>
+</tr>
+<tr>
+    <td><b>4a</b></td>
+    <td>Condenser Outlet (Subcooled)</td>
+    <td><code>T_4a</code> + <code>P_disch</code></td>
+    <td><code>T cond. Outlet</code></td>
+</tr>
+</table>
+
+<hr>
+
+<h3 style='color: #a855f7;'>Circuit-Specific Points (Colored Dots)</h3>
+<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
+<tr style='background-color: #f3f4f6;'>
+    <td><b>Point</b></td>
+    <td><b>Description</b></td>
+    <td><b>Excel Columns</b></td>
+    <td><b>Circuits</b></td>
+</tr>
+<tr>
+    <td><b>1</b></td>
+    <td>Evaporator Inlet (TXV Outlet)</td>
+    <td><code>h_4b_{circuit}</code> (isenthalpic) + <code>P_suction</code></td>
+    <td>LH, CTR, RH</td>
+</tr>
+<tr>
+    <td><b>2a</b></td>
+    <td>Evaporator Outlet (TXV Bulb)</td>
+    <td><code>H_coil lh</code>, <code>H_coil ctr</code>, <code>H_coil rh</code> + <code>P_suction</code></td>
+    <td>LH, CTR, RH</td>
+</tr>
+<tr>
+    <td><b>4b</b></td>
+    <td>TXV Inlet (Subcooled Liquid)</td>
+    <td><code>H_txv.lh</code>, <code>H_txv.ctr</code>, <code>H_txv.rh</code> + <code>P_disch</code></td>
+    <td>LH, CTR, RH</td>
+</tr>
+</table>
+
+<hr>
+
+<h3 style='color: #ef4444;'>Cycle Paths (Lines Connecting Points)</h3>
+<table border='1' cellpadding='5' cellspacing='0' style='border-collapse: collapse; width: 100%;'>
+<tr style='background-color: #f3f4f6;'>
+    <td><b>Process</b></td>
+    <td><b>Path</b></td>
+    <td><b>Line Style</b></td>
+    <td><b>Description</b></td>
+</tr>
+<tr>
+    <td>Compression</td>
+    <td>2b → 3a</td>
+    <td>Solid Black (Heavy)</td>
+    <td>Common to all circuits (single compressor)</td>
+</tr>
+<tr>
+    <td>Condensation</td>
+    <td>3a → 4b</td>
+    <td>Solid Colored</td>
+    <td>Per-circuit (high pressure side)</td>
+</tr>
+<tr>
+    <td>Expansion</td>
+    <td>4b → 1</td>
+    <td>Solid Colored</td>
+    <td>Per-circuit (TXV throttling)</td>
+</tr>
+<tr>
+    <td>Evaporation</td>
+    <td>1 → 2a</td>
+    <td>Solid Colored</td>
+    <td>Per-circuit (low pressure side)</td>
+</tr>
+<tr>
+    <td>Mixing</td>
+    <td>2a → 2b</td>
+    <td>Dashed Colored</td>
+    <td>Circuit convergence to common suction</td>
+</tr>
+</table>
+
+<hr>
+
+<h3 style='color: #f59e0b;'>Color Legend</h3>
+<ul>
+<li><b style='color: #3b82f6;'>■ Blue</b> - Left Hand Circuit (LH)</li>
+<li><b style='color: #16a34a;'>■ Green</b> - Center Circuit (CTR)</li>
+<li><b style='color: #a855f7;'>■ Purple</b> - Right Hand Circuit (RH)</li>
+<li><b style='color: #111827;'>■ Black</b> - Common Points (shared by all circuits)</li>
+</ul>
+
+<hr>
+
+<h3 style='color: #6b7280;'>Notes</h3>
+<ul>
+<li>All temperatures are converted from Fahrenheit to Kelvin before CoolProp calculations</li>
+<li>Pressures are converted from PSIG to Pa for CoolProp, then to kPa for plotting</li>
+<li>Enthalpies are calculated using CoolProp with T and P inputs</li>
+<li>Point 1 uses isenthalpic expansion (h_1 = h_4b) per thermodynamic theory</li>
+<li>Backward compatibility: Falls back to old column names if new names not found</li>
+</ul>
+"""
+
+        # Create a message box with scrollable text
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("P-h Diagram Column Mapping")
+        msg_box.setTextFormat(Qt.TextFormat.RichText)
+        msg_box.setText(info_text)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg_box.setIcon(QMessageBox.Icon.Information)
+
+        # Make the dialog larger to accommodate the table
+        msg_box.setStyleSheet("QLabel{min-width: 700px; min-height: 500px;}")
+
+        msg_box.exec()
