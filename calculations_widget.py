@@ -19,26 +19,26 @@ from input_dialog import InputDialog
 
 class NestedHeaderView(QHeaderView):
     """
-    Custom QHeaderView that draws nested headers based on Calculations-DDT.xlsx layout.
+    Custom QHeaderView that draws 3-ROW nested headers matching Calculations-DDT.xlsx layout.
 
-    Creates a two-row header structure:
-    - Row 1: Group headers (e.g., "AT LH coil", "At compressor inlet")
-    - Row 2: Column headers (e.g., "TXV out", "Coil in", "Density")
+    Creates a THREE-row header structure (matching Excel exactly):
+    - Row 1: Main section headers (e.g., "AT LH coil", "At compressor inlet")
+    - Row 2: Sub-section headers (e.g., "TXV out", "Coil out", "Density")
+    - Row 3: Actual column names (e.g., "T_1a-lh", "D_coil lh")
     """
 
     def __init__(self, parent=None):
         super().__init__(Qt.Orientation.Horizontal, parent)
         self.setStretchLastSection(True)
 
-        # Define the nested header structure (Top Label, Column Span)
-        # UPDATED to match Calculations-DDT.xlsx EXACTLY (54 columns total)
-        self.groups = [
-            ("AT LH coil", 8),      # Was 6, now 8 (added T_1a-lh, T_1b-lh)
-            ("AT CTR coil", 8),     # Was 6, now 8 (added T_1a-ctr, T_1b-ctr)
-            ("AT RH coil", 8),      # Was 6, now 8 (added T_1a-rh, T_1c-rh)
+        # Row 1: Main section headers (Top Label, Column Span)
+        self.main_sections = [
+            ("AT LH coil", 8),
+            ("AT CTR coil", 8),
+            ("AT RH coil", 8),
             ("At compressor inlet", 7),
             ("Comp outlet", 2),
-            ("At Condenser", 7),    # Was 6, now 7 (added T_waterin)
+            ("At Condenser", 7),
             ("At TXV LH", 4),
             ("At TXV CTR", 4),
             ("At TXV RH", 4),
@@ -46,81 +46,123 @@ class NestedHeaderView(QHeaderView):
         ]
         # Total: 8+8+8+7+2+7+4+4+4+2 = 54 columns
 
-        # Define the sub-header labels matching EXACT Excel column names
-        # This matches the output from calculate_row_performance()
-        self.sub_headers = [
-            # LH Coil (8 cols) - ADDED T_1a-lh, T_1b-lh
+        # Row 2: Sub-section headers (descriptive labels for groups of columns)
+        self.sub_sections = [
+            # AT LH coil (8)
+            "TXV out", "TXV out", "Coil out", "T sat", "Superheat", "Density", "Enthalpy", "Entropy",
+            # AT CTR coil (8)
+            "TXV out", "TXV out", "Coil out", "T sat", "Superheat", "Density", "Enthalpy", "Entropy",
+            # AT RH coil (8)
+            "TXV out", "TXV out", "Coil out", "T sat", "Superheat", "Density", "Enthalpy", "Entropy",
+            # At compressor inlet (7)
+            "Pressure", "Temp", "T sat", "Superheat", "Density", "Enthalpy", "Entropy",
+            # Comp outlet (2)
+            "Temp", "RPM",
+            # At Condenser (7)
+            "Inlet", "Pressure", "Outlet", "T sat", "Subcool", "Water in", "Water out",
+            # At TXV LH (4)
+            "Temp", "T sat", "Subcool", "Enthalpy",
+            # At TXV CTR (4)
+            "Temp", "T sat", "Subcool", "Enthalpy",
+            # At TXV RH (4)
+            "Temp", "T sat", "Subcool", "Enthalpy",
+            # TOTAL (2)
+            "Mass flow", "Capacity"
+        ]
+
+        # Row 3: Actual column names (data keys from DataFrame)
+        self.column_names = [
+            # LH Coil (8)
             "T_1a-lh", "T_1b-lh", "T_2a-LH", "T_sat.lh", "S.H_lh coil", "D_coil lh", "H_coil lh", "S_coil lh",
-            # CTR Coil (8 cols) - ADDED T_1a-ctr, T_1b-ctr
+            # CTR Coil (8)
             "T_1a-ctr", "T_1b-ctr", "T_2a-ctr", "T_sat.ctr", "S.H_ctr coil", "D_coil ctr", "H_coil ctr", "S_coil ctr",
-            # RH Coil (8 cols) - ADDED T_1a-rh, T_1c-rh
+            # RH Coil (8)
             "T_1a-rh", "T_1c-rh", "T_2a-RH", "T_sat.rh", "S.H_rh coil", "D_coil rh", "H_coil rh", "S_coil rh",
-            # Compressor Inlet (7 cols) - UPDATED to Excel names
+            # Compressor Inlet (7)
             "P_suction", "T_2b", "T_sat.comp.in", "S.H_total", "D_comp.in", "H_comp.in", "S_comp.in",
-            # Comp Outlet (2 cols) - UPDATED to Excel names
+            # Comp Outlet (2)
             "T_3a", "rpm",
-            # Condenser (7 cols) - UPDATED to Excel names, ADDED T_waterin, T_waterout
+            # Condenser (7)
             "T_3b", "P_disch", "T_4a", "T_sat.cond", "S.C", "T_waterin", "T_waterout",
-            # TXV LH (4 cols) - UPDATED to Excel names
+            # TXV LH (4)
             "T_4b-lh", "T_sat.txv.lh", "S.C-txv.lh", "H_txv.lh",
-            # TXV CTR (4 cols) - UPDATED to Excel names
+            # TXV CTR (4)
             "T_4b-ctr", "T_sat.txv.ctr", "S.C-txv.ctr", "H_txv.ctr",
-            # TXV RH (4 cols) - UPDATED to Excel names
+            # TXV RH (4)
             "T_4b-rh", "T_sat.txv.rh", "S.C-txv.rh", "H_txv.rh",
-            # TOTAL (2 cols) - UPDATED to Excel names
+            # TOTAL (2)
             "m_dot", "qc"
         ]
 
-        # Define the data keys (Row 3 from CSV - actual DataFrame column names)
-        # This is the crucial link to the DataFrame returned by run_batch_processing
-        self.data_keys = self.sub_headers  # They match in the new system
+        # This is what QTreeWidget will use for actual data column headers
+        self.sub_headers = self.column_names  # For backward compatibility
+        self.data_keys = self.column_names
 
     def paintEvent(self, event):
-        """Custom paint event to draw nested headers."""
-        # Draw the base header (sub-headers)
+        """Custom paint event to draw 3-ROW nested headers."""
+        # Draw the base header (row 3 - column names)
         super().paintEvent(event)
 
         painter = QPainter(self)
         painter.save()
 
-        # Set font for group headers
+        height_third = self.height() // 3
+
+        # ===== ROW 1: Main Section Headers (Top third) =====
         font = self.font()
         font.setBold(True)
+        font.setPointSize(font.pointSize() + 1)
         painter.setFont(font)
-
-        # Draw background for group header row
-        painter.fillRect(0, 0, self.width(), self.height() // 2, QColor(240, 240, 240))
+        painter.fillRect(0, 0, self.width(), height_third, QColor(220, 220, 220))
 
         col_index = 0
-        for text, span in self.groups:
+        for text, span in self.main_sections:
             if span == 0:
                 continue
 
-            # Get rectangle for this group
             first_col_rect = self.sectionViewportPosition(col_index)
             last_col_rect = self.sectionViewportPosition(col_index + span - 1)
-
             group_width = (last_col_rect + self.sectionSize(col_index + span - 1)) - first_col_rect
-            group_rect = self.rect()
-            group_rect.setLeft(first_col_rect)
-            group_rect.setWidth(group_width)
-            group_rect.setHeight(self.height() // 2)  # Top half
 
-            # Draw border
-            painter.setPen(QColor(100, 100, 100))
-            painter.drawRect(group_rect.adjusted(0, 0, -1, -1))
+            rect = self.rect()
+            rect.setLeft(first_col_rect)
+            rect.setWidth(group_width)
+            rect.setTop(0)
+            rect.setHeight(height_third)
 
-            # Draw text
-            painter.drawText(group_rect, Qt.AlignmentFlag.AlignCenter, text)
+            painter.setPen(QColor(80, 80, 80))
+            painter.drawRect(rect.adjusted(0, 0, -1, -1))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
 
             col_index += span
+
+        # ===== ROW 2: Sub-section Headers (Middle third) =====
+        font.setBold(False)
+        font.setPointSize(font.pointSize() - 1)
+        font.setItalic(True)
+        painter.setFont(font)
+        painter.fillRect(0, height_third, self.width(), height_third, QColor(240, 240, 240))
+
+        for col_idx, sub_text in enumerate(self.sub_sections):
+            col_rect = self.sectionViewportPosition(col_idx)
+            col_width = self.sectionSize(col_idx)
+
+            rect = self.rect()
+            rect.setLeft(col_rect)
+            rect.setWidth(col_width)
+            rect.setTop(height_third)
+            rect.setHeight(height_third)
+
+            painter.setPen(QColor(100, 100, 100))
+            painter.drawRect(rect.adjusted(0, 0, -1, -1))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, sub_text)
 
         painter.restore()
 
     def sizeHint(self):
-        """Double the height to make space for nested groups."""
+        """Triple the height for 3 rows."""
         size = super().sizeHint()
-        size.setHeight(size.height() * 2)
+        size.setHeight(size.height() * 3)
         return size
 
 
