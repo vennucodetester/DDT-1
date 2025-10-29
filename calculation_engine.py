@@ -566,6 +566,8 @@ def hz_to_rph(hz: float) -> float:
 
 def ft3_to_m3(ft3: float) -> float:
     """Convert cubic feet to cubic meters."""
+    if ft3 is None:
+        return 0.0
     return ft3 * 0.0283168
 
 
@@ -751,6 +753,9 @@ def calculate_row_performance(
         t_3a_f = get_val('T_3a')  # Compressor outlet
         t_3b_f = get_val('T_3b')  # Condenser inlet
         t_4a_f = get_val('T_4a')  # Condenser outlet
+        # Condenser water temps (optional)
+        t_water_out_f = get_val('Cond.water.out')
+        t_water_in_f = get_val('Cond.water.in')
 
         # Condenser water temps (MISSING IN OLD CODE)
         t_waterin_f = get_val('T_waterin')  # Condenser water inlet

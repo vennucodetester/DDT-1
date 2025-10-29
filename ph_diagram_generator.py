@@ -77,9 +77,29 @@ class PhDiagramGenerator:
         # Use the first row (latest data point)
         data_row = filtered_df.iloc[0]
         
+        # Helper to convert psig to Pa
+        def psig_to_pa(psig):
+            if psig is None or (isinstance(psig, float) and np.isnan(psig)):
+                return np.nan
+            return (psig + 14.696) * 6894.76
+
+        # Prefer already-in-Pa columns if present; otherwise convert from our psig outputs
+        P_suc_pa = data_row.get('P_suc', np.nan)
+        P_cond_pa = data_row.get('P_cond', np.nan)
+
+        if np.isnan(P_suc_pa):
+            psig = data_row.get('Press.suc')
+            if psig is not None:
+                P_suc_pa = psig_to_pa(psig)
+
+        if np.isnan(P_cond_pa):
+            psig = data_row.get('Press disch')
+            if psig is not None:
+                P_cond_pa = psig_to_pa(psig)
+
         cycle_data = {
-            'P_suc_pa': data_row.get('P_suc', np.nan),      # Suction pressure in Pa
-            'P_cond_pa': data_row.get('P_cond', np.nan),    # Condenser pressure in Pa
+            'P_suc_pa': P_suc_pa,
+            'P_cond_pa': P_cond_pa,
             'common_points': {},
             'circuit_points': {'LH': {}, 'CTR': {}, 'RH': {}}
         }
@@ -91,48 +111,89 @@ class PhDiagramGenerator:
         # ===== Common Points (non-circuit-specific) =====
         
         # Point 2b (Suction line, superheated)
+        # Prefer direct enthalpy if present; otherwise compute from temperature
+        h_2b = None
         if 'h_2b' in data_row.index:
             h_2b = data_row['h_2b']
-            if not np.isnan(h_2b) and 200 < h_2b < 700:
-                cycle_data['common_points']['2b'] = {
-                    'h': h_2b,
-                    'P': P_suc_kpa,
-                    'desc': 'Suction Line (Superheated)',
-                    'color': '#111827'
-                }
+        if h_2b is None or np.isnan(h_2b):
+            T_2b_f = data_row.get('Comp.in')
+            if T_2b_f is not None and not np.isnan(T_2b_f) and P_suc_kpa > 0:
+                T_2b_K = (T_2b_f + 459.67) * 5.0 / 9.0
+                try:
+                    h_val = PropsSI('H', 'T', T_2b_K, 'P', P_suc_kpa * 1000, self.refrigerant) / 1000
+                    h_2b = h_val
+                except Exception:
+                    pass
+        if h_2b is not None and not np.isnan(h_2b) and 200 < h_2b < 700 and P_suc_kpa > 0:
+            cycle_data['common_points']['2b'] = {
+                'h': h_2b,
+                'P': P_suc_kpa,
+                'desc': 'Suction Line (Superheated)',
+                'color': '#111827'
+            }
         
         # Point 3a (Discharge line, superheated)
+        h_3a = None
         if 'h_3a' in data_row.index:
             h_3a = data_row['h_3a']
-            if not np.isnan(h_3a) and 200 < h_3a < 700:
-                cycle_data['common_points']['3a'] = {
-                    'h': h_3a,
-                    'P': P_cond_kpa,
-                    'desc': 'Discharge Line (Superheated)',
-                    'color': '#111827'
-                }
+        if h_3a is None or np.isnan(h_3a):
+            T_3a_f = data_row.get('T comp outlet')
+            if T_3a_f is not None and not np.isnan(T_3a_f) and P_cond_kpa > 0:
+                T_3a_K = (T_3a_f + 459.67) * 5.0 / 9.0
+                try:
+                    h_val = PropsSI('H', 'T', T_3a_K, 'P', P_cond_kpa * 1000, self.refrigerant) / 1000
+                    h_3a = h_val
+                except Exception:
+                    pass
+        if h_3a is not None and not np.isnan(h_3a) and 200 < h_3a < 700 and P_cond_kpa > 0:
+            cycle_data['common_points']['3a'] = {
+                'h': h_3a,
+                'P': P_cond_kpa,
+                'desc': 'Discharge Line (Superheated)',
+                'color': '#111827'
+            }
         
         # Point 3b (Condenser inlet, gas)
+        h_3b = None
         if 'h_3b' in data_row.index:
             h_3b = data_row['h_3b']
-            if not np.isnan(h_3b) and 200 < h_3b < 700:
-                cycle_data['common_points']['3b'] = {
-                    'h': h_3b,
-                    'P': P_cond_kpa,
-                    'desc': 'Condenser Inlet',
-                    'color': '#111827'
-                }
+        if h_3b is None or np.isnan(h_3b):
+            T_3b_f = data_row.get('T cond inlet')
+            if T_3b_f is not None and not np.isnan(T_3b_f) and P_cond_kpa > 0:
+                T_3b_K = (T_3b_f + 459.67) * 5.0 / 9.0
+                try:
+                    h_val = PropsSI('H', 'T', T_3b_K, 'P', P_cond_kpa * 1000, self.refrigerant) / 1000
+                    h_3b = h_val
+                except Exception:
+                    pass
+        if h_3b is not None and not np.isnan(h_3b) and 200 < h_3b < 700 and P_cond_kpa > 0:
+            cycle_data['common_points']['3b'] = {
+                'h': h_3b,
+                'P': P_cond_kpa,
+                'desc': 'Condenser Inlet',
+                'color': '#111827'
+            }
         
         # Point 4a (Condenser outlet, subcooled)
+        h_4a = None
         if 'h_4a' in data_row.index:
             h_4a = data_row['h_4a']
-            if not np.isnan(h_4a) and 200 < h_4a < 700:
-                cycle_data['common_points']['4a'] = {
-                    'h': h_4a,
-                    'P': P_cond_kpa,
-                    'desc': 'Condenser Outlet (Subcooled)',
-                    'color': '#111827'
-                }
+        if h_4a is None or np.isnan(h_4a):
+            T_4a_f = data_row.get('T cond. Outlet')
+            if T_4a_f is not None and not np.isnan(T_4a_f) and P_cond_kpa > 0:
+                T_4a_K = (T_4a_f + 459.67) * 5.0 / 9.0
+                try:
+                    h_val = PropsSI('H', 'T', T_4a_K, 'P', P_cond_kpa * 1000, self.refrigerant) / 1000
+                    h_4a = h_val
+                except Exception:
+                    pass
+        if h_4a is not None and not np.isnan(h_4a) and 200 < h_4a < 700 and P_cond_kpa > 0:
+            cycle_data['common_points']['4a'] = {
+                'h': h_4a,
+                'P': P_cond_kpa,
+                'desc': 'Condenser Outlet (Subcooled)',
+                'color': '#111827'
+            }
         
         # ===== Circuit-Specific Points =====
         circuits = {
@@ -145,10 +206,18 @@ class PhDiagramGenerator:
             color = circuit_info['color']
             
             # Point 4b (TXV inlet, high pressure side)
-            h_4b_col = f'h_4b_{circuit}'
+            # Use our per-circuit enthalpy columns if present
             h_4b = None
+            # Preferred: existing h_4b_{circuit}
+            h_4b_col = f'h_4b_{circuit}'
             if h_4b_col in data_row.index:
                 h_4b = data_row[h_4b_col]
+            # Fallback: Enthalpy_txv_lh/ctr/rh
+            if h_4b is None or np.isnan(h_4b):
+                suffix_map = {'LH': 'lh', 'CTR': 'ctr', 'RH': 'rh'}
+                alt_col = f'Enthalpy_txv_{suffix_map[circuit]}'
+                if alt_col in data_row.index:
+                    h_4b = data_row[alt_col]
                 if not np.isnan(h_4b) and 200 < h_4b < 700:
                     cycle_data['circuit_points'][circuit]['4b'] = {
                         'h': h_4b,
@@ -167,9 +236,16 @@ class PhDiagramGenerator:
                 }
             
             # Point 2a (TXV bulb, low pressure side)
+            # Use our per-circuit coil enthalpy columns if present
             h_2a_col = f'h_2a_{circuit}'
+            h_2a = None
             if h_2a_col in data_row.index:
                 h_2a = data_row[h_2a_col]
+            if h_2a is None or np.isnan(h_2a):
+                suffix_map = {'LH': 'lh', 'CTR': 'ctr', 'RH': 'rh'}
+                alt_col = f'H_coil {suffix_map[circuit]}'
+                if alt_col in data_row.index:
+                    h_2a = data_row[alt_col]
                 if not np.isnan(h_2a) and 200 < h_2a < 700:
                     cycle_data['circuit_points'][circuit]['2a'] = {
                         'h': h_2a,
