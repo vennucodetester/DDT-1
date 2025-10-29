@@ -1061,6 +1061,7 @@ class DataManager(QObject):
                 "mappings": self._prepare_mappings_with_ranges(),
                 "sensorGroups": self._prepare_sensor_groups(),
                 "groupStates": self._prepare_group_states(),
+                "ratedInputs": self.rated_inputs,  # Save rated inputs for volumetric efficiency calculation
                 "diagramModel": sanitized_diagram,  # Save diagram designer data (sanitized)
                 "graphSensors": list(self.graph_sensors),  # Save which sensors are checked for graphing
                 "ui": {

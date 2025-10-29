@@ -1,22 +1,26 @@
 """
 inputs_widget.py
 
-Simple Inputs-only page. Mirrors the exact values shown beside sensor dots by
-using DataManager.get_sensor_value for currently mapped roles and known center
-outlet sensors. No calculations here; just list live inputs.
+Displays live sensor inputs AND provides UI for entering rated (manual) inputs
+needed for volumetric efficiency calculation (Step 1 from Calculations-DDT.txt).
 """
 
 from typing import Dict, List, Optional
 
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit
-from PyQt6.QtWidgets import QPushButton
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit,
+                              QPushButton, QDoubleSpinBox, QGroupBox, QFormLayout,
+                              QMessageBox)
 from component_schemas import SCHEMAS
 
 
 class InputsWidget(QWidget):
-    """Live inputs page that reflects mapping/unmapping instantly."""
+    """
+    Inputs page with two sections:
+    1. Live sensor values (read-only)
+    2. Rated inputs form (user-editable, for Step 1 calculation)
+    """
 
     def __init__(self, data_manager, parent=None):
         super().__init__(parent)
@@ -25,39 +29,151 @@ class InputsWidget(QWidget):
         self._debounce = QTimer(self)
         self._debounce.setSingleShot(True)
         self._debounce.setInterval(200)
-        self._debounce.timeout.connect(self._refresh)
+        self._debounce.timeout.connect(self._refresh_sensor_values)
 
         layout = QVBoxLayout(self)
 
+        # Title
         title = QLabel("Inputs")
         title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
-        self.subtitle = QLabel("Click Refresh to update inputs.")
+        # === SECTION 1: RATED INPUTS (USER MANUAL INPUT) ===
+        rated_inputs_group = self._create_rated_inputs_section()
+        layout.addWidget(rated_inputs_group)
+
+        # === SECTION 2: LIVE SENSOR VALUES ===
+        sensor_values_group = self._create_sensor_values_section()
+        layout.addWidget(sensor_values_group)
+
+        # Load rated inputs from data manager on initialization
+        self._load_rated_inputs()
+
+    def _create_rated_inputs_section(self):
+        """Create the rated inputs form (Step 1 requirements)."""
+        group = QGroupBox("Rated Inputs (User Manual Input for Step 1)")
+        group.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+
+        form_layout = QFormLayout()
+        form_layout.setSpacing(10)
+
+        # Create input widgets for each rated value
+        # Based on Calculations-DDT.txt Step 1 requirements
+
+        self.m_dot_rated_spinbox = QDoubleSpinBox()
+        self.m_dot_rated_spinbox.setRange(0, 10000)
+        self.m_dot_rated_spinbox.setDecimals(2)
+        self.m_dot_rated_spinbox.setSuffix(" lbm/hr")
+        self.m_dot_rated_spinbox.setToolTip("Rated mass flow rate from compressor datasheet")
+        form_layout.addRow("Rated Mass Flow (m_dot_rated):", self.m_dot_rated_spinbox)
+
+        self.hz_rated_spinbox = QDoubleSpinBox()
+        self.hz_rated_spinbox.setRange(0, 200)
+        self.hz_rated_spinbox.setDecimals(1)
+        self.hz_rated_spinbox.setSuffix(" Hz")
+        self.hz_rated_spinbox.setToolTip("Rated compressor speed from datasheet")
+        form_layout.addRow("Rated Speed (hz_rated):", self.hz_rated_spinbox)
+
+        self.disp_ft3_spinbox = QDoubleSpinBox()
+        self.disp_ft3_spinbox.setRange(0, 100)
+        self.disp_ft3_spinbox.setDecimals(4)
+        self.disp_ft3_spinbox.setSuffix(" ft³")
+        self.disp_ft3_spinbox.setToolTip("Compressor displacement from datasheet")
+        form_layout.addRow("Compressor Displacement (disp_ft3):", self.disp_ft3_spinbox)
+
+        self.rated_evap_temp_spinbox = QDoubleSpinBox()
+        self.rated_evap_temp_spinbox.setRange(-100, 100)
+        self.rated_evap_temp_spinbox.setDecimals(1)
+        self.rated_evap_temp_spinbox.setSuffix(" °F")
+        self.rated_evap_temp_spinbox.setToolTip("Rated evaporator temperature from datasheet")
+        form_layout.addRow("Rated Evap Temp:", self.rated_evap_temp_spinbox)
+
+        self.rated_return_gas_temp_spinbox = QDoubleSpinBox()
+        self.rated_return_gas_temp_spinbox.setRange(-100, 100)
+        self.rated_return_gas_temp_spinbox.setDecimals(1)
+        self.rated_return_gas_temp_spinbox.setSuffix(" °F")
+        self.rated_return_gas_temp_spinbox.setToolTip("Rated return gas temperature from datasheet")
+        form_layout.addRow("Rated Return Gas Temp:", self.rated_return_gas_temp_spinbox)
+
+        # Save button
+        button_layout = QHBoxLayout()
+        self.save_rated_button = QPushButton("Save Rated Inputs")
+        self.save_rated_button.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.save_rated_button.clicked.connect(self._save_rated_inputs)
+        button_layout.addWidget(self.save_rated_button)
+        button_layout.addStretch()
+
+        form_layout.addRow("", button_layout)
+
+        group.setLayout(form_layout)
+        return group
+
+    def _create_sensor_values_section(self):
+        """Create the live sensor values display."""
+        group = QGroupBox("Live Sensor Values")
+        group.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+
+        layout = QVBoxLayout()
+
+        self.subtitle = QLabel("Click Refresh to update sensor inputs.")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.subtitle)
 
         # Manual refresh button
-        self.refresh_btn = QPushButton("Refresh Inputs")
-        self.refresh_btn.setFont(QFont("Arial", 12))
-        self.refresh_btn.clicked.connect(self._refresh)
+        self.refresh_btn = QPushButton("Refresh Sensor Values")
+        self.refresh_btn.setFont(QFont("Arial", 10))
+        self.refresh_btn.clicked.connect(self._refresh_sensor_values)
         layout.addWidget(self.refresh_btn)
 
         self.text = QTextEdit()
         self.text.setReadOnly(True)
-        self.text.setFont(QFont("Courier", 10))
+        self.text.setFont(QFont("Courier", 9))
         layout.addWidget(self.text)
 
-        # Intentionally no live subscriptions; updates happen only on button click
+        group.setLayout(layout)
+        return group
 
-        # Initial state: do not auto-refresh
+    def _load_rated_inputs(self):
+        """Load rated inputs from data manager into UI."""
+        rated = self.data_manager.rated_inputs
+
+        if rated.get('m_dot_rated_lbhr') is not None:
+            self.m_dot_rated_spinbox.setValue(rated['m_dot_rated_lbhr'])
+        if rated.get('hz_rated') is not None:
+            self.hz_rated_spinbox.setValue(rated['hz_rated'])
+        if rated.get('disp_ft3') is not None:
+            self.disp_ft3_spinbox.setValue(rated['disp_ft3'])
+        if rated.get('rated_evap_temp_f') is not None:
+            self.rated_evap_temp_spinbox.setValue(rated['rated_evap_temp_f'])
+        if rated.get('rated_return_gas_temp_f') is not None:
+            self.rated_return_gas_temp_spinbox.setValue(rated['rated_return_gas_temp_f'])
+
+    def _save_rated_inputs(self):
+        """Save rated inputs from UI to data manager."""
+        self.data_manager.rated_inputs = {
+            'm_dot_rated_lbhr': self.m_dot_rated_spinbox.value(),
+            'hz_rated': self.hz_rated_spinbox.value(),
+            'disp_ft3': self.disp_ft3_spinbox.value(),
+            'rated_evap_temp_f': self.rated_evap_temp_spinbox.value(),
+            'rated_return_gas_temp_f': self.rated_return_gas_temp_spinbox.value(),
+        }
+
+        QMessageBox.information(
+            self,
+            "Rated Inputs Saved",
+            "Rated inputs have been saved successfully.\n\n"
+            "These values will be used for volumetric efficiency calculation (Step 1)."
+        )
+
+        print(f"[INPUTS] Rated inputs saved: {self.data_manager.rated_inputs}")
 
     def update_ui(self):
-        # No-op for manual refresh mode
-        return
+        """Called when tab is shown - refresh sensor values."""
+        self._refresh_sensor_values()
 
-    def _refresh(self):
+    def _refresh_sensor_values(self):
+        """Refresh the live sensor values display."""
         try:
             lines: List[str] = []
             dm = self.data_manager
@@ -189,7 +305,7 @@ class InputsWidget(QWidget):
                 lines.append("")
 
             self.text.setPlainText("\n".join(lines))
-            self.subtitle.setText("Inputs refreshed")
+            self.subtitle.setText("Sensor values refreshed")
         except Exception as e:
             self.text.setPlainText(f"Error: {e}")
             self.subtitle.setText("Error")
@@ -201,17 +317,3 @@ class InputsWidget(QWidget):
             return self.data_manager.get_sensor_value(sensor_name)
         except Exception:
             return None
-
-    def _fmt(self, label: str, name: Optional[str], val: Optional[float], unit: str) -> str:
-        if name and val is not None:
-            if isinstance(val, (int, float)):
-                try:
-                    return f"{label}: {name} = {val:.1f}{unit}"
-                except Exception:
-                    return f"{label}: {name} = {val}{unit}"
-            return f"{label}: {name} = {val}{unit}"
-        if name:
-            return f"{label}: {name} = N/A"
-        return f"{label}: [MISSING]"
-
-
