@@ -566,6 +566,8 @@ def hz_to_rph(hz: float) -> float:
 
 def ft3_to_m3(ft3: float) -> float:
     """Convert cubic feet to cubic meters."""
+    if ft3 is None:
+        return 0.0
     return ft3 * 0.0283168
 
 
@@ -746,6 +748,9 @@ def calculate_row_performance(
         t_3a_f = get_val('T_3a')  # Compressor outlet
         t_3b_f = get_val('T_3b')  # Condenser inlet
         t_4a_f = get_val('T_4a')  # Condenser outlet
+        # Condenser water temps (optional)
+        t_water_out_f = get_val('Cond.water.out')
+        t_water_in_f = get_val('Cond.water.in')
 
         # Validate critical pressure values
         # Goal-2C: NO degradation for sensors - just clear error messages
@@ -774,7 +779,7 @@ def calculate_row_performance(
 
             results['T_2a-LH'] = t_2a_lh_f
             results['T_sat.lh'] = (t_sat_suc_k - 273.15) * 9/5 + 32  # Convert to °F
-            results['S.H_lh coil'] = sh_lh * 9/5  # Convert to °F
+            results['S.H_lh'] = sh_lh * 9/5  # Convert to °F
             results['H_coil lh'] = h_2a_lh / 1000  # kJ/kg
             results['S_coil lh'] = s_2a_lh / 1000  # kJ/(kg·K)
             results['D_coil lh'] = d_2a_lh  # kg/m³
@@ -789,7 +794,7 @@ def calculate_row_performance(
 
             results['T_2a-ctr'] = t_2a_ctr_f
             results['T_sat.ctr'] = (t_sat_suc_k - 273.15) * 9/5 + 32
-            results['S.H_ctr coil'] = sh_ctr * 9/5
+            results['S.H_ctr'] = sh_ctr * 9/5
             results['H_coil ctr'] = h_2a_ctr / 1000
             results['S_coil ctr'] = s_2a_ctr / 1000
             results['D_coil ctr'] = d_2a_ctr
@@ -804,7 +809,7 @@ def calculate_row_performance(
 
             results['T_2a-RH'] = t_2a_rh_f
             results['T_sat.rh'] = (t_sat_suc_k - 273.15) * 9/5 + 32
-            results['S.H_rh coil'] = sh_rh * 9/5
+            results['S.H_rh'] = sh_rh * 9/5
             results['H_coil rh'] = h_2a_rh / 1000
             results['S_coil rh'] = s_2a_rh / 1000
             results['D_coil rh'] = d_2a_rh
@@ -840,6 +845,11 @@ def calculate_row_performance(
             results['T cond. Outlet'] = t_4a_f
             results['T_sat_cond'] = (t_sat_disch_k - 273.15) * 9/5 + 32
             results['Sub cooling_cond'] = subcool_cond * 9/5
+        # Optional condenser water temperature outputs (pass-through in °F)
+        if t_water_out_f is not None:
+            results['Cond.water.out'] = t_water_out_f
+        if t_water_in_f is not None:
+            results['Cond.water.in'] = t_water_in_f
 
         # ===== 9. CALCULATE "AT TXV" SECTIONS =====
         # TXV LH

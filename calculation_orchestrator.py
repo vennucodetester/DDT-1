@@ -414,6 +414,10 @@ REQUIRED_SENSOR_ROLES = {
     'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
     'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
     'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
+
+    # Condenser water temperatures (optional display fields)
+    'Cond.water.out': [('Condenser', 'water_out_temp')],
+    'Cond.water.in': [('Condenser', 'water_in_temp')],
 }
 
 
@@ -507,7 +511,9 @@ def run_batch_processing(
 
     # === STEP 2: GET COMPRESSOR SPECS ===
     # Convert displacement from user input (ft³) to m³ for the engine
-    rated_disp_ft3 = rated_inputs.get('disp_ft3', 0)
+    # Handle None values: if key exists but value is None, treat as missing (default to 0)
+    rated_disp_ft3 = rated_inputs.get('disp_ft3') or 0
+    
     comp_specs = {
         'displacement_m3': ft3_to_m3(rated_disp_ft3)
     }
