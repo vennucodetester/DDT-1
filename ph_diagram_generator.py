@@ -84,16 +84,23 @@ class PhDiagramGenerator:
             return (psig + 14.696) * 6894.76
 
         # Prefer already-in-Pa columns if present; otherwise convert from our psig outputs
+        # FIXED: Updated to use NEW Excel column names
         P_suc_pa = data_row.get('P_suc', np.nan)
         P_cond_pa = data_row.get('P_cond', np.nan)
 
         if np.isnan(P_suc_pa):
-            psig = data_row.get('Press.suc')
+            # Try NEW Excel name first, then old name for backward compat
+            psig = data_row.get('P_suction')  # NEW Excel name
+            if psig is None:
+                psig = data_row.get('Press.suc')  # OLD name (backward compat)
             if psig is not None:
                 P_suc_pa = psig_to_pa(psig)
 
         if np.isnan(P_cond_pa):
-            psig = data_row.get('Press disch')
+            # Try NEW Excel name first, then old name for backward compat
+            psig = data_row.get('P_disch')  # NEW Excel name
+            if psig is None:
+                psig = data_row.get('Press disch')  # OLD name (backward compat)
             if psig is not None:
                 P_cond_pa = psig_to_pa(psig)
 
@@ -112,11 +119,15 @@ class PhDiagramGenerator:
         
         # Point 2b (Suction line, superheated)
         # Prefer direct enthalpy if present; otherwise compute from temperature
+        # FIXED: Use NEW Excel column names
         h_2b = None
         if 'h_2b' in data_row.index:
             h_2b = data_row['h_2b']
         if h_2b is None or np.isnan(h_2b):
-            T_2b_f = data_row.get('Comp.in')
+            # Try NEW Excel name first, then old name
+            T_2b_f = data_row.get('T_2b')  # NEW Excel name
+            if T_2b_f is None:
+                T_2b_f = data_row.get('Comp.in')  # OLD name (backward compat)
             if T_2b_f is not None and not np.isnan(T_2b_f) and P_suc_kpa > 0:
                 T_2b_K = (T_2b_f + 459.67) * 5.0 / 9.0
                 try:
@@ -133,11 +144,15 @@ class PhDiagramGenerator:
             }
         
         # Point 3a (Discharge line, superheated)
+        # FIXED: Use NEW Excel column names
         h_3a = None
         if 'h_3a' in data_row.index:
             h_3a = data_row['h_3a']
         if h_3a is None or np.isnan(h_3a):
-            T_3a_f = data_row.get('T comp outlet')
+            # Try NEW Excel name first, then old name
+            T_3a_f = data_row.get('T_3a')  # NEW Excel name
+            if T_3a_f is None:
+                T_3a_f = data_row.get('T comp outlet')  # OLD name (backward compat)
             if T_3a_f is not None and not np.isnan(T_3a_f) and P_cond_kpa > 0:
                 T_3a_K = (T_3a_f + 459.67) * 5.0 / 9.0
                 try:
@@ -154,11 +169,15 @@ class PhDiagramGenerator:
             }
         
         # Point 3b (Condenser inlet, gas)
+        # FIXED: Use NEW Excel column names
         h_3b = None
         if 'h_3b' in data_row.index:
             h_3b = data_row['h_3b']
         if h_3b is None or np.isnan(h_3b):
-            T_3b_f = data_row.get('T cond inlet')
+            # Try NEW Excel name first, then old name
+            T_3b_f = data_row.get('T_3b')  # NEW Excel name
+            if T_3b_f is None:
+                T_3b_f = data_row.get('T cond inlet')  # OLD name (backward compat)
             if T_3b_f is not None and not np.isnan(T_3b_f) and P_cond_kpa > 0:
                 T_3b_K = (T_3b_f + 459.67) * 5.0 / 9.0
                 try:
@@ -175,11 +194,15 @@ class PhDiagramGenerator:
             }
         
         # Point 4a (Condenser outlet, subcooled)
+        # FIXED: Use NEW Excel column names
         h_4a = None
         if 'h_4a' in data_row.index:
             h_4a = data_row['h_4a']
         if h_4a is None or np.isnan(h_4a):
-            T_4a_f = data_row.get('T cond. Outlet')
+            # Try NEW Excel name first, then old name
+            T_4a_f = data_row.get('T_4a')  # NEW Excel name
+            if T_4a_f is None:
+                T_4a_f = data_row.get('T cond. Outlet')  # OLD name (backward compat)
             if T_4a_f is not None and not np.isnan(T_4a_f) and P_cond_kpa > 0:
                 T_4a_K = (T_4a_f + 459.67) * 5.0 / 9.0
                 try:
