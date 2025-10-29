@@ -267,9 +267,12 @@ class CalculationsWidget(QWidget):
     def run_calculation(self):
         """Run the full batch calculation using the new unified engine."""
 
-        # GUARD CLAUSE: Check for rated inputs (Goal-2 Phase 3)
-        # This prevents the TypeError: unsupported operand type(s) for +: 'NoneType' and 'float'
+        # SOFT WARNING: Check for rated inputs (Goal-2C)
+        # If missing, calculation will use default eta_vol (0.85) with warnings
+        # This is the degradation strategy for missing rated inputs
         required_fields = [
+            'rated_capacity_btu_hr',
+            'rated_power_w',
             'm_dot_rated_lbhr',
             'hz_rated',
             'disp_ft3',
@@ -288,6 +291,8 @@ class CalculationsWidget(QWidget):
         if missing_fields:
             # Show user-friendly field names
             field_labels = {
+                'rated_capacity_btu_hr': 'Rated Cooling Capacity',
+                'rated_power_w': 'Rated Power',
                 'm_dot_rated_lbhr': 'Rated Mass Flow Rate',
                 'hz_rated': 'Rated Compressor Speed',
                 'disp_ft3': 'Compressor Displacement',
@@ -297,17 +302,20 @@ class CalculationsWidget(QWidget):
 
             missing_labels = [field_labels.get(f, f) for f in missing_fields]
 
-            self.status_label.setText("❌ Missing rated inputs. Please enter them first.")
-            self.status_label.setStyleSheet("color: red; font-size: 10pt;")
-
-            QMessageBox.warning(
+            # SOFT WARNING - Allow user to continue
+            reply = QMessageBox.question(
                 self,
-                "Missing Inputs",
-                "Please click the '⚙️ Enter Rated Inputs' button and fill in all "
-                "5 'Rated Performance Inputs' fields before running calculations.\n\n"
-                f"Missing or zero fields:\n" + "\n".join(f"• {label}" for label in missing_labels)
+                "Incomplete Rated Inputs",
+                "Some rated performance inputs are missing:\n\n" +
+                "\n".join(f"• {label}" for label in missing_labels) +
+                "\n\nCalculations will proceed using default values where needed.\n"
+                "Results may be approximate.\n\n"
+                "Continue anyway?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
-            return  # EXIT - do not proceed with calculation
+
+            if reply == QMessageBox.StandardButton.No:
+                return  # User chose to stop
 
         self.run_button.setText("Calculating...")
         self.run_button.setEnabled(False)
