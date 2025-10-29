@@ -6,13 +6,17 @@ This module bridges the diagram model with the calculation engine.
 """
 
 from typing import Dict, Optional, List
+import pandas as pd
 from port_resolver import resolve_mapped_sensor, get_sensor_value
 from calculation_engine import (
     compute_8_point_cycle,
     calculate_mass_flow_rate,
     calculate_system_performance,
+    calculate_volumetric_efficiency,
+    calculate_row_performance,
     f_to_k,
-    psig_to_pa
+    psig_to_pa,
+    ft3_to_m3
 )
 
 
@@ -373,13 +377,164 @@ def calculate_per_circuit(data_manager, circuit_label: str) -> Dict:
     )
     
     result["state_points"] = state_points
-    
+
     if state_points.get("errors"):
         result["errors"].extend(state_points["errors"])
     else:
         result["ok"] = True
-    
+
     return result
 
 
+# =========================================================================
+# NEW UNIFIED BATCH PROCESSING ENGINE (from goal.md Step 3)
+# This replaces coolprop_calculator.py entirely
+# =========================================================================
+
+# Master list of all sensor roles needed for the new calculation
+# Maps internal role keys to (ComponentType, PortName, {optional property filters})
+REQUIRED_SENSOR_ROLES = {
+    # Pressures
+    'P_suc': [('Compressor', 'SP')],
+    'P_disch': [('Compressor', 'DP')],
+    'RPM': [('Compressor', 'RPM')],
+
+    # Compressor and Condenser temps
+    'T_2b': [('Compressor', 'inlet')],
+    'T_3a': [('Compressor', 'outlet')],
+    'T_3b': [('Condenser', 'inlet')],
+    'T_4a': [('Condenser', 'outlet')],
+
+    # Circuit-specific evaporator outlets (state 2a)
+    'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
+    'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
+    'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
+
+    # Circuit-specific TXV inlets (state 4b)
+    'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
+    'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
+    'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
+}
+
+
+def _find_sensor_for_role(model: Dict, role_def: tuple) -> Optional[str]:
+    """
+    Helper to find the first mapped sensor for a given role definition.
+
+    Args:
+        model: Diagram model dict
+        role_def: Tuple of (ComponentType, PortName) or (ComponentType, PortName, {props})
+
+    Returns:
+        Sensor name (CSV column name) or None
+    """
+    components = model.get('components', {})
+
+    role_comp_type = role_def[0]
+    role_port = role_def[1]
+    role_props = role_def[2] if len(role_def) > 2 else {}
+
+    for comp_id, comp in components.items():
+        comp_type = comp.get('type')
+        props = comp.get('properties', {})
+
+        # Check component type
+        if comp_type != role_comp_type:
+            continue
+
+        # Check if properties match (e.g., circuit_label)
+        props_match = True
+        if role_props:
+            for key, val in role_props.items():
+                if props.get(key) != val:
+                    props_match = False
+                    break
+
+        if props_match:
+            # Found matching component, resolve the sensor
+            sensor = resolve_mapped_sensor(model, comp_type, comp_id, role_port)
+            if sensor:
+                return sensor
+
+    return None
+
+
+def run_batch_processing(
+    data_manager,
+    input_dataframe: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    The NEW main entry point for the "Calculations" tab.
+
+    This function implements the complete two-step calculation process from goal.md:
+    - Step 1: Calculate volumetric efficiency from rated inputs (one-time)
+    - Step 2: Apply row-by-row performance calculations (for each timestamp)
+
+    This replaces coolprop_calculator.py entirely with a flexible, port-mapping-based system.
+
+    Args:
+        data_manager: DataManager instance with diagram_model and rated_inputs
+        input_dataframe: Raw CSV data (or filtered data)
+
+    Returns:
+        DataFrame with all calculated columns matching Calculations-DDT.xlsx structure
+    """
+    print(f"[BATCH PROCESSING] Starting batch processing on {len(input_dataframe)} rows...")
+
+    # === STEP 1: GET RATED INPUTS AND CALCULATE ETA_VOL ===
+    rated_inputs = data_manager.rated_inputs
+    refrigerant = data_manager.refrigerant or 'R290'
+
+    eta_vol_results = calculate_volumetric_efficiency(rated_inputs, refrigerant)
+
+    if 'error' in eta_vol_results:
+        print(f"[BATCH PROCESSING] ERROR in Step 1 (eta_vol): {eta_vol_results['error']}")
+        print("[BATCH PROCESSING] Please enter rated inputs in the Inputs tab.")
+        return pd.DataFrame({'error': [eta_vol_results['error']]})
+
+    eta_vol = eta_vol_results.get('eta_vol', 0)
+    print(f"[BATCH PROCESSING] Step 1 complete: eta_vol = {eta_vol:.4f}")
+
+    # === STEP 2: GET COMPRESSOR SPECS ===
+    # Convert displacement from user input (ft³) to m³ for the engine
+    rated_disp_ft3 = rated_inputs.get('disp_ft3', 0)
+    comp_specs = {
+        'displacement_m3': ft3_to_m3(rated_disp_ft3)
+    }
+    print(f"[BATCH PROCESSING] Compressor displacement: {rated_disp_ft3} ft³ = {comp_specs['displacement_m3']:.6f} m³")
+
+    # === STEP 3: BUILD THE SENSOR NAME MAP ===
+    diagram_model = data_manager.diagram_model
+    sensor_map = {}
+
+    for key, role_defs in REQUIRED_SENSOR_ROLES.items():
+        for role_def in role_defs:
+            sensor_name = _find_sensor_for_role(diagram_model, role_def)
+            if sensor_name:
+                sensor_map[key] = sensor_name
+                break  # Found it
+
+        if key not in sensor_map:
+            print(f"[BATCH PROCESSING] WARNING: No sensor mapped for required role '{key}'")
+
+    print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} mappings")
+    print(f"[BATCH PROCESSING] Sensor map: {sensor_map}")
+
+    # === STEP 4: RUN STEP 2 (ROW-BY-ROW PROCESSING) ===
+    print(f"[BATCH PROCESSING] Starting row-by-row calculation...")
+
+    results_df = input_dataframe.apply(
+        calculate_row_performance,
+        axis=1,
+        sensor_map=sensor_map,
+        eta_vol=eta_vol,
+        comp_specs=comp_specs,
+        refrigerant=refrigerant
+    )
+
+    print(f"[BATCH PROCESSING] Row-by-row calculation complete!")
+    print(f"[BATCH PROCESSING] Output DataFrame has {len(results_df)} rows and {len(results_df.columns)} columns")
+    print(f"[BATCH PROCESSING] Output columns: {list(results_df.columns)}")
+
+    return results_df
 

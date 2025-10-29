@@ -488,70 +488,379 @@ def calculate_system_performance(
 ) -> Dict:
     """
     Calculate complete system performance metrics.
-    
+
     Args:
         state_points: Dict from compute_8_point_cycle()
         mass_flow_kgs: Mass flow rate (kg/s)
-    
+
     Returns:
         Dict with all performance metrics
     """
-    
+
     states = state_points.get("states", {})
     perf = state_points.get("performance", {})
-    
+
     # Get enthalpies (in J/kg, convert from kJ/kg)
     h_2b = states.get("2b", {}).get("h_kJkg", 0) * 1000
     h_3a = states.get("3a", {}).get("h_kJkg", 0) * 1000
     h_4a = states.get("4a", {}).get("h_kJkg", 0) * 1000
     h_4b = states.get("4b", {}).get("h_kJkg", 0) * 1000
-    
+
     result = {}
-    
+
     # Cooling Capacity (Watts)
     if h_2b and h_4b:
         cooling_capacity_w = mass_flow_kgs * (h_2b - h_4b)
         cooling_capacity_btu_hr = cooling_capacity_w * 3.41214
         cooling_capacity_tons = cooling_capacity_btu_hr / 12000
-        
+
         result["cooling_capacity"] = {
             "watts": cooling_capacity_w,
             "btu_hr": cooling_capacity_btu_hr,
             "tons": cooling_capacity_tons
         }
-    
+
     # Compressor Power (Watts) - use isentropic work from performance
     compressor_work_kJkg = perf.get("compressor_work_kJkg")
     if compressor_work_kJkg:
         compressor_power_w = mass_flow_kgs * compressor_work_kJkg * 1000
         compressor_power_hp = compressor_power_w / 745.7
-        
+
         result["compressor_power"] = {
             "watts": compressor_power_w,
             "horsepower": compressor_power_hp
         }
-    
+
     # Heat Rejection (Watts)
     if h_3a and h_4a:
         heat_rejection_w = mass_flow_kgs * (h_3a - h_4a)
         heat_rejection_btu_hr = heat_rejection_w * 3.41214
-        
+
         result["heat_rejection"] = {
             "watts": heat_rejection_w,
             "btu_hr": heat_rejection_btu_hr
         }
-    
+
     # COP and EER
     cop = perf.get("cop")
     if cop:
         result["efficiency"] = {"cop": cop}
-        
+
         # Calculate EER if we have cooling capacity
         if "cooling_capacity" in result and "compressor_power" in result:
             eer = result["cooling_capacity"]["btu_hr"] / result["compressor_power"]["watts"]
             result["efficiency"]["eer"] = eer
-    
+
     return result
+
+
+# =========================================================================
+# NEW UNIFIED CALCULATION ENGINE (from goal.md)
+# Implements the two-step calculation process from Calculations-DDT.txt
+# =========================================================================
+
+def hz_to_rph(hz: float) -> float:
+    """Convert Hz to revolutions per hour."""
+    return hz * 3600.0
+
+
+def ft3_to_m3(ft3: float) -> float:
+    """Convert cubic feet to cubic meters."""
+    return ft3 * 0.0283168
+
+
+def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290') -> Dict:
+    """
+    Performs the "Step 1" calculation from Calculations-DDT.txt / goal.md
+    to find the constant volumetric efficiency (eta_vol).
+
+    This is a one-time calculation based on user manual inputs (rated values).
+
+    Args:
+        rated_inputs: Dict with keys:
+            - m_dot_rated_lbhr: Rated mass flow rate (lbm/hr)
+            - hz_rated: Rated compressor speed (Hz)
+            - disp_ft3: Compressor displacement (ft³)
+            - rated_evap_temp_f: Rated evaporator temperature (°F)
+            - rated_return_gas_temp_f: Rated return gas temperature (°F)
+        refrigerant: Refrigerant name (default 'R290')
+
+    Returns:
+        Dict with eta_vol and intermediate values, or {'error': message}
+    """
+    if CP is None:
+        return {'error': 'CoolProp not available'}
+
+    try:
+        # 1. Get User Inputs
+        m_dot_rated_lb_hr = rated_inputs.get('m_dot_rated_lbhr', 0)
+        rated_evap_f = rated_inputs.get('rated_evap_temp_f', 0)
+        rated_return_f = rated_inputs.get('rated_return_gas_temp_f', 0)
+        rated_disp_ft3 = rated_inputs.get('disp_ft3', 0)
+        rated_hz = rated_inputs.get('hz_rated', 0)
+
+        # Validate inputs
+        if m_dot_rated_lb_hr == 0:
+            return {'error': 'Rated mass flow rate cannot be zero'}
+        if rated_hz == 0:
+            return {'error': 'Rated speed cannot be zero'}
+        if rated_disp_ft3 == 0:
+            return {'error': 'Compressor displacement cannot be zero'}
+
+        # 2. Calculate Theoretical Mass Flow (m_dot_th)
+        # Get saturation pressure at rated evaporator temperature
+        rated_evap_k = f_to_k(rated_evap_f)
+        P_rated_sat = CP.PropsSI('P', 'T', rated_evap_k, 'Q', 0, refrigerant)
+
+        # Get density at rated return gas temperature and saturation pressure
+        rated_return_k = f_to_k(rated_return_f)
+        dens_rated_kg_m3 = CP.PropsSI('D', 'T', rated_return_k, 'P', P_rated_sat, refrigerant)
+        dens_rated_lb_ft3 = dens_rated_kg_m3 * 0.062428  # Convert to lb/ft³
+
+        # Calculate RPH (revolutions per hour)
+        rph = hz_to_rph(rated_hz)
+
+        # Theoretical mass flow
+        m_dot_th_lb_hr = dens_rated_lb_ft3 * rph * rated_disp_ft3
+
+        # 3. Calculate Volumetric Efficiency
+        if m_dot_th_lb_hr == 0:
+            return {'error': 'Theoretical mass flow is zero'}
+
+        eta_vol = m_dot_rated_lb_hr / m_dot_th_lb_hr
+
+        return {
+            'eta_vol': eta_vol,
+            'm_dot_rated_lb_hr': m_dot_rated_lb_hr,
+            'm_dot_th_lb_hr': m_dot_th_lb_hr,
+            'dens_rated_lb_ft3': dens_rated_lb_ft3,
+            'dens_rated_kg_m3': dens_rated_kg_m3,
+            'P_rated_sat_pa': P_rated_sat,
+            'rph': rph,
+        }
+    except Exception as e:
+        return {'error': f'Calculation error: {str(e)}'}
+
+
+def calculate_row_performance(
+    row: pd.Series,
+    sensor_map: Dict[str, str],
+    eta_vol: float,
+    comp_specs: Dict,
+    refrigerant: str = 'R290'
+) -> pd.Series:
+    """
+    Performs the "Step 2" calculation from Calculations-DDT.txt / goal.md
+    on a single row of data.
+
+    This is the row-by-row processing that generates the complete output table
+    matching Calculations-DDT.xlsx structure.
+
+    Args:
+        row: Single row from DataFrame (pandas Series)
+        sensor_map: Dict mapping internal role keys to CSV column names
+                    e.g., {'P_suc': 'Suction Presure ', 'T_2b': 'Suction line into Comp'}
+        eta_vol: Volumetric efficiency from Step 1
+        comp_specs: Dict with 'displacement_m3' key
+        refrigerant: Refrigerant name (default 'R290')
+
+    Returns:
+        pandas Series with all calculated values
+    """
+    if CP is None:
+        return pd.Series({'error': 'CoolProp not available'})
+
+    results = {}
+
+    try:
+        # Helper function to safely get values from the row
+        def get_val(key):
+            col_name = sensor_map.get(key)
+            if col_name is None:
+                return None
+            return row.get(col_name)
+
+        # ===== 1. GET ALL REQUIRED SENSOR VALUES =====
+        # Pressures
+        p_suc_psig = get_val('P_suc')
+        p_disch_psig = get_val('P_disch')
+        rpm = get_val('RPM')
+
+        # Temperatures - LH circuit
+        t_2a_lh_f = get_val('T_2a-LH')  # Evap outlet LH
+        t_4b_lh_f = get_val('T_4b-lh')  # TXV inlet LH
+
+        # Temperatures - CTR circuit
+        t_2a_ctr_f = get_val('T_2a-ctr')  # Evap outlet CTR
+        t_4b_ctr_f = get_val('T_4b-ctr')  # TXV inlet CTR
+
+        # Temperatures - RH circuit
+        t_2a_rh_f = get_val('T_2a-RH')  # Evap outlet RH
+        t_4b_rh_f = get_val('T_4b-rh')  # TXV inlet RH
+
+        # Temperatures - Compressor and Condenser
+        t_2b_f = get_val('T_2b')  # Compressor inlet
+        t_3a_f = get_val('T_3a')  # Compressor outlet
+        t_3b_f = get_val('T_3b')  # Condenser inlet
+        t_4a_f = get_val('T_4a')  # Condenser outlet
+
+        # Validate critical values
+        if p_suc_psig is None or p_disch_psig is None:
+            return pd.Series({'error': 'Missing pressure data'})
+        if rpm is None or rpm == 0:
+            return pd.Series({'error': 'Missing or zero RPM'})
+
+        # ===== 2. CONVERT UNITS (PSIG → Pa, °F → K) =====
+        p_suc_pa = psig_to_pa(p_suc_psig)
+        p_disch_pa = psig_to_pa(p_disch_psig)
+
+        # Get saturation temperatures
+        t_sat_suc_k = CP.PropsSI('T', 'P', p_suc_pa, 'Q', 0, refrigerant)
+        t_sat_disch_k = CP.PropsSI('T', 'P', p_disch_pa, 'Q', 0, refrigerant)
+
+        # ===== 3. CALCULATE "AT LH COIL" SECTION =====
+        if t_2a_lh_f is not None:
+            t_2a_lh_k = f_to_k(t_2a_lh_f)
+            h_2a_lh = CP.PropsSI('H', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
+            s_2a_lh = CP.PropsSI('S', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
+            d_2a_lh = CP.PropsSI('D', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
+            sh_lh = t_2a_lh_k - t_sat_suc_k
+
+            results['T_2a-LH'] = t_2a_lh_f
+            results['T_sat.lh'] = (t_sat_suc_k - 273.15) * 9/5 + 32  # Convert to °F
+            results['S.H_lh coil'] = sh_lh * 9/5  # Convert to °F
+            results['H_coil lh'] = h_2a_lh / 1000  # kJ/kg
+            results['S_coil lh'] = s_2a_lh / 1000  # kJ/(kg·K)
+            results['D_coil lh'] = d_2a_lh  # kg/m³
+
+        # ===== 4. CALCULATE "AT CTR COIL" SECTION =====
+        if t_2a_ctr_f is not None:
+            t_2a_ctr_k = f_to_k(t_2a_ctr_f)
+            h_2a_ctr = CP.PropsSI('H', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
+            s_2a_ctr = CP.PropsSI('S', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
+            d_2a_ctr = CP.PropsSI('D', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
+            sh_ctr = t_2a_ctr_k - t_sat_suc_k
+
+            results['T_2a-ctr'] = t_2a_ctr_f
+            results['T_sat.ctr'] = (t_sat_suc_k - 273.15) * 9/5 + 32
+            results['S.H_ctr coil'] = sh_ctr * 9/5
+            results['H_coil ctr'] = h_2a_ctr / 1000
+            results['S_coil ctr'] = s_2a_ctr / 1000
+            results['D_coil ctr'] = d_2a_ctr
+
+        # ===== 5. CALCULATE "AT RH COIL" SECTION =====
+        if t_2a_rh_f is not None:
+            t_2a_rh_k = f_to_k(t_2a_rh_f)
+            h_2a_rh = CP.PropsSI('H', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
+            s_2a_rh = CP.PropsSI('S', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
+            d_2a_rh = CP.PropsSI('D', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
+            sh_rh = t_2a_rh_k - t_sat_suc_k
+
+            results['T_2a-RH'] = t_2a_rh_f
+            results['T_sat.rh'] = (t_sat_suc_k - 273.15) * 9/5 + 32
+            results['S.H_rh coil'] = sh_rh * 9/5
+            results['H_coil rh'] = h_2a_rh / 1000
+            results['S_coil rh'] = s_2a_rh / 1000
+            results['D_coil rh'] = d_2a_rh
+
+        # ===== 6. CALCULATE "AT COMPRESSOR INLET" SECTION =====
+        if t_2b_f is not None:
+            t_2b_k = f_to_k(t_2b_f)
+            h_2b = CP.PropsSI('H', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
+            s_2b = CP.PropsSI('S', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
+            rho_2b = CP.PropsSI('D', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
+            sh_total = t_2b_k - t_sat_suc_k
+
+            results['Press.suc'] = p_suc_psig
+            results['Comp.in'] = t_2b_f
+            results['T saturation'] = (t_sat_suc_k - 273.15) * 9/5 + 32
+            results['Super heat'] = sh_total * 9/5
+            results['Density'] = rho_2b
+            results['Enthalpy'] = h_2b / 1000
+            results['Entropy'] = s_2b / 1000
+
+        # ===== 7. CALCULATE "COMP OUTLET" SECTION =====
+        if t_3a_f is not None:
+            results['T comp outlet'] = t_3a_f
+        results['Comp. rpm'] = rpm
+
+        # ===== 8. CALCULATE "AT CONDENSER" SECTION =====
+        if t_3b_f is not None:
+            results['T cond inlet'] = t_3b_f
+        results['Press disch'] = p_disch_psig
+        if t_4a_f is not None:
+            t_4a_k = f_to_k(t_4a_f)
+            subcool_cond = t_sat_disch_k - t_4a_k
+            results['T cond. Outlet'] = t_4a_f
+            results['T_sat_cond'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['Sub cooling_cond'] = subcool_cond * 9/5
+
+        # ===== 9. CALCULATE "AT TXV" SECTIONS =====
+        # TXV LH
+        if t_4b_lh_f is not None:
+            t_4b_lh_k = f_to_k(t_4b_lh_f)
+            h_4b_lh = CP.PropsSI('H', 'T', t_4b_lh_k, 'P', p_disch_pa, refrigerant)
+            subcool_lh = t_sat_disch_k - t_4b_lh_k
+
+            results['TXV in-LH'] = t_4b_lh_f
+            results['T_Saturation_txv_lh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['Subcooling_txv_lh'] = subcool_lh * 9/5
+            results['Enthalpy_txv_lh'] = h_4b_lh / 1000
+
+        # TXV CTR
+        if t_4b_ctr_f is not None:
+            t_4b_ctr_k = f_to_k(t_4b_ctr_f)
+            h_4b_ctr = CP.PropsSI('H', 'T', t_4b_ctr_k, 'P', p_disch_pa, refrigerant)
+            subcool_ctr = t_sat_disch_k - t_4b_ctr_k
+
+            results['TXV in-CTR'] = t_4b_ctr_f
+            results['T_Saturation_txv_ctr'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['Subcooling_txv_ctr'] = subcool_ctr * 9/5
+            results['Enthalpy_txv_ctr'] = h_4b_ctr / 1000
+
+        # TXV RH
+        if t_4b_rh_f is not None:
+            t_4b_rh_k = f_to_k(t_4b_rh_f)
+            h_4b_rh = CP.PropsSI('H', 'T', t_4b_rh_k, 'P', p_disch_pa, refrigerant)
+            subcool_rh = t_sat_disch_k - t_4b_rh_k
+
+            results['TXV in-RH'] = t_4b_rh_f
+            results['T_Saturation_txv_rh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['Subcooling_txv_rh'] = subcool_rh * 9/5
+            results['Enthalpy_txv_rh'] = h_4b_rh / 1000
+
+        # ===== 10. CALCULATE FINAL PERFORMANCE (MASS FLOW & COOLING CAP) =====
+        if rho_2b and eta_vol > 0:
+            disp_m3 = comp_specs.get('displacement_m3', 0)
+            if disp_m3 > 0:
+                # Mass flow rate in kg/s
+                mass_flow_kgs = rho_2b * eta_vol * disp_m3 * (rpm / 60)
+
+                # Average enthalpy at TXV inlet (average of 3 circuits)
+                h_4b_values = []
+                if t_4b_lh_f is not None:
+                    h_4b_values.append(h_4b_lh)
+                if t_4b_ctr_f is not None:
+                    h_4b_values.append(h_4b_ctr)
+                if t_4b_rh_f is not None:
+                    h_4b_values.append(h_4b_rh)
+
+                if h_4b_values and t_2b_f is not None:
+                    h_4b_avg = sum(h_4b_values) / len(h_4b_values)
+
+                    # Cooling capacity in Watts
+                    cooling_cap_w = mass_flow_kgs * (h_2b - h_4b_avg)
+
+                    results['Mass flow rate'] = mass_flow_kgs * 2.20462 * 3600  # to lb/hr
+                    results['Cooling cap'] = cooling_cap_w * 3.41214  # to BTU/hr
+
+        return pd.Series(results)
+
+    except Exception as e:
+        print(f"Error processing row: {e}")
+        import traceback
+        traceback.print_exc()
+        return pd.Series({'error': str(e)})
 
 
 def calculate_performance_from_compressor(
