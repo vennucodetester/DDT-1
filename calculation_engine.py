@@ -695,22 +695,21 @@ def calculate_row_performance(
     refrigerant: str = 'R290'
 ) -> pd.Series:
     """
-    Performs the "Step 2" calculation from Calculations-DDT.txt / goal.md
+    Performs the "Step 2" calculation from Calculations-DDT.txt
     on a single row of data.
 
-    This is the row-by-row processing that generates the complete output table
-    matching Calculations-DDT.xlsx structure.
+    COMPLETE REWRITE to produce ALL 54 columns matching Calculations-DDT.xlsx EXACTLY.
+    Also adds P-h diagram specific columns for plotting.
 
     Args:
         row: Single row from DataFrame (pandas Series)
         sensor_map: Dict mapping internal role keys to CSV column names
-                    e.g., {'P_suc': 'Suction Presure ', 'T_2b': 'Suction line into Comp'}
         eta_vol: Volumetric efficiency from Step 1
         comp_specs: Dict with 'displacement_m3' key
         refrigerant: Refrigerant name (default 'R290')
 
     Returns:
-        pandas Series with all calculated values
+        pandas Series with all 54 calculated values PLUS P-h diagram columns
     """
     if CP is None:
         return pd.Series({'error': 'CoolProp not available'})
@@ -725,25 +724,31 @@ def calculate_row_performance(
                 return None
             return row.get(col_name)
 
-        # ===== 1. GET ALL REQUIRED SENSOR VALUES =====
+        # ===== 1. GET ALL SENSOR VALUES (INCLUDING 8 MISSING ONES) =====
         # Pressures
         p_suc_psig = get_val('P_suc')
         p_disch_psig = get_val('P_disch')
         rpm = get_val('RPM')
 
-        # Temperatures - LH circuit
+        # LH circuit (8 sensors total: inlet + outlet for each coil)
+        t_1a_lh_f = get_val('T_1a-lh')  # TXV outlet / Evap inlet LH
+        t_1b_lh_f = get_val('T_1b-lh')  # Coil inlet LH
         t_2a_lh_f = get_val('T_2a-LH')  # Evap outlet LH
         t_4b_lh_f = get_val('T_4b-lh')  # TXV inlet LH
 
-        # Temperatures - CTR circuit
+        # CTR circuit
+        t_1a_ctr_f = get_val('T_1a-ctr')  # TXV outlet / Evap inlet CTR
+        t_1b_ctr_f = get_val('T_1b-ctr')  # Coil inlet CTR
         t_2a_ctr_f = get_val('T_2a-ctr')  # Evap outlet CTR
         t_4b_ctr_f = get_val('T_4b-ctr')  # TXV inlet CTR
 
-        # Temperatures - RH circuit
+        # RH circuit
+        t_1a_rh_f = get_val('T_1a-rh')  # TXV outlet / Evap inlet RH
+        t_1c_rh_f = get_val('T_1c-rh')  # Coil inlet RH (note: 1c not 1b per Excel)
         t_2a_rh_f = get_val('T_2a-RH')  # Evap outlet RH
         t_4b_rh_f = get_val('T_4b-rh')  # TXV inlet RH
 
-        # Temperatures - Compressor and Condenser
+        # Compressor and Condenser
         t_2b_f = get_val('T_2b')  # Compressor inlet
         t_3a_f = get_val('T_3a')  # Compressor outlet
         t_3b_f = get_val('T_3b')  # Condenser inlet
@@ -752,14 +757,13 @@ def calculate_row_performance(
         t_water_out_f = get_val('Cond.water.out')
         t_water_in_f = get_val('Cond.water.in')
 
+        # Condenser water temps (MISSING IN OLD CODE)
+        t_waterin_f = get_val('T_waterin')  # Condenser water inlet
+        t_waterout_f = get_val('T_waterout')  # Condenser water outlet
+
         # Validate critical pressure values
-        # Goal-2C: NO degradation for sensors - just clear error messages
         if p_suc_psig is None or p_disch_psig is None:
             return pd.Series({'error': 'Missing pressure sensors - Please map suction and discharge pressure sensors in the Diagram tab'})
-
-        # Goal-2C: RPM is NOT critical - only needed for mass flow & cooling capacity
-        # 43/47 columns (91.5%) can still be calculated without RPM
-        # We'll calculate what we can and skip mass flow/cooling capacity if RPM missing
 
         # ===== 2. CONVERT UNITS (PSIG → Pa, °F → K) =====
         p_suc_pa = psig_to_pa(p_suc_psig)
@@ -769,125 +773,160 @@ def calculate_row_performance(
         t_sat_suc_k = CP.PropsSI('T', 'P', p_suc_pa, 'Q', 0, refrigerant)
         t_sat_disch_k = CP.PropsSI('T', 'P', p_disch_pa, 'Q', 0, refrigerant)
 
-        # ===== 3. CALCULATE "AT LH COIL" SECTION =====
+        # Store intermediate enthalpy values for P-h diagram
+        h_2a_lh, h_2a_ctr, h_2a_rh = None, None, None
+        h_2b, h_3a, h_3b, h_4a = None, None, None, None
+        h_4b_lh, h_4b_ctr, h_4b_rh = None, None, None
+        rho_2b = None
+
+        # ===== 3. AT LH COIL (Columns 1-8) =====
+        # Sensor data first (columns 1-3)
+        if t_1a_lh_f is not None:
+            results['T_1a-lh'] = t_1a_lh_f
+        if t_1b_lh_f is not None:
+            results['T_1b-lh'] = t_1b_lh_f
         if t_2a_lh_f is not None:
+            results['T_2a-LH'] = t_2a_lh_f
+            # Calculate properties at evap outlet (columns 4-8)
             t_2a_lh_k = f_to_k(t_2a_lh_f)
             h_2a_lh = CP.PropsSI('H', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
             s_2a_lh = CP.PropsSI('S', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
             d_2a_lh = CP.PropsSI('D', 'T', t_2a_lh_k, 'P', p_suc_pa, refrigerant)
             sh_lh = t_2a_lh_k - t_sat_suc_k
 
-            results['T_2a-LH'] = t_2a_lh_f
-            results['T_sat.lh'] = (t_sat_suc_k - 273.15) * 9/5 + 32  # Convert to °F
-            results['S.H_lh'] = sh_lh * 9/5  # Convert to °F
-            results['H_coil lh'] = h_2a_lh / 1000  # kJ/kg
-            results['S_coil lh'] = s_2a_lh / 1000  # kJ/(kg·K)
-            results['D_coil lh'] = d_2a_lh  # kg/m³
+            results['T_sat.lh'] = (t_sat_suc_k - 273.15) * 9/5 + 32
+            results['S.H_lh coil'] = sh_lh * 9/5
+            results['D_coil lh'] = d_2a_lh
+            results['H_coil lh'] = h_2a_lh / 1000
+            results['S_coil lh'] = s_2a_lh / 1000
 
-        # ===== 4. CALCULATE "AT CTR COIL" SECTION =====
+        # ===== 4. AT CTR COIL (Columns 9-16) =====
+        if t_1a_ctr_f is not None:
+            results['T_1a-ctr'] = t_1a_ctr_f
+        if t_1b_ctr_f is not None:
+            results['T_1b-ctr'] = t_1b_ctr_f
         if t_2a_ctr_f is not None:
+            results['T_2a-ctr'] = t_2a_ctr_f
             t_2a_ctr_k = f_to_k(t_2a_ctr_f)
             h_2a_ctr = CP.PropsSI('H', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
             s_2a_ctr = CP.PropsSI('S', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
             d_2a_ctr = CP.PropsSI('D', 'T', t_2a_ctr_k, 'P', p_suc_pa, refrigerant)
             sh_ctr = t_2a_ctr_k - t_sat_suc_k
 
-            results['T_2a-ctr'] = t_2a_ctr_f
             results['T_sat.ctr'] = (t_sat_suc_k - 273.15) * 9/5 + 32
-            results['S.H_ctr'] = sh_ctr * 9/5
+            results['S.H_ctr coil'] = sh_ctr * 9/5
+            results['D_coil ctr'] = d_2a_ctr
             results['H_coil ctr'] = h_2a_ctr / 1000
             results['S_coil ctr'] = s_2a_ctr / 1000
-            results['D_coil ctr'] = d_2a_ctr
 
-        # ===== 5. CALCULATE "AT RH COIL" SECTION =====
+        # ===== 5. AT RH COIL (Columns 17-24) =====
+        if t_1a_rh_f is not None:
+            results['T_1a-rh'] = t_1a_rh_f
+        if t_1c_rh_f is not None:
+            results['T_1c-rh'] = t_1c_rh_f
         if t_2a_rh_f is not None:
+            results['T_2a-RH'] = t_2a_rh_f
             t_2a_rh_k = f_to_k(t_2a_rh_f)
             h_2a_rh = CP.PropsSI('H', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
             s_2a_rh = CP.PropsSI('S', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
             d_2a_rh = CP.PropsSI('D', 'T', t_2a_rh_k, 'P', p_suc_pa, refrigerant)
             sh_rh = t_2a_rh_k - t_sat_suc_k
 
-            results['T_2a-RH'] = t_2a_rh_f
             results['T_sat.rh'] = (t_sat_suc_k - 273.15) * 9/5 + 32
-            results['S.H_rh'] = sh_rh * 9/5
+            results['S.H_rh coil'] = sh_rh * 9/5
+            results['D_coil rh'] = d_2a_rh
             results['H_coil rh'] = h_2a_rh / 1000
             results['S_coil rh'] = s_2a_rh / 1000
-            results['D_coil rh'] = d_2a_rh
 
-        # ===== 6. CALCULATE "AT COMPRESSOR INLET" SECTION =====
+        # ===== 6. AT COMPRESSOR INLET (Columns 25-31) =====
+        # Excel column names: P_suction, T_2b, T_sat.comp.in, S.H_total, D_comp.in, H_comp.in, S_comp.in
+        results['P_suction'] = p_suc_psig
         if t_2b_f is not None:
+            results['T_2b'] = t_2b_f
             t_2b_k = f_to_k(t_2b_f)
             h_2b = CP.PropsSI('H', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
             s_2b = CP.PropsSI('S', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
             rho_2b = CP.PropsSI('D', 'T', t_2b_k, 'P', p_suc_pa, refrigerant)
             sh_total = t_2b_k - t_sat_suc_k
 
-            results['Press.suc'] = p_suc_psig
-            results['Comp.in'] = t_2b_f
-            results['T saturation'] = (t_sat_suc_k - 273.15) * 9/5 + 32
-            results['Super heat'] = sh_total * 9/5
-            results['Density'] = rho_2b
-            results['Enthalpy'] = h_2b / 1000
-            results['Entropy'] = s_2b / 1000
+            results['T_sat.comp.in'] = (t_sat_suc_k - 273.15) * 9/5 + 32
+            results['S.H_total'] = sh_total * 9/5
+            results['D_comp.in'] = rho_2b
+            results['H_comp.in'] = h_2b / 1000
+            results['S_comp.in'] = s_2b / 1000
 
-        # ===== 7. CALCULATE "COMP OUTLET" SECTION =====
+        # ===== 7. COMP OUTLET (Columns 32-33) =====
+        # Excel column names: T_3a, rpm
         if t_3a_f is not None:
-            results['T comp outlet'] = t_3a_f
-        results['Comp. rpm'] = rpm
+            results['T_3a'] = t_3a_f
+            # Calculate enthalpy for P-h diagram (MISSING IN OLD CODE)
+            t_3a_k = f_to_k(t_3a_f)
+            h_3a = CP.PropsSI('H', 'T', t_3a_k, 'P', p_disch_pa, refrigerant)
+        results['rpm'] = rpm
 
-        # ===== 8. CALCULATE "AT CONDENSER" SECTION =====
+        # ===== 8. AT CONDENSER (Columns 34-40) =====
+        # Excel column names: T_3b, P_disch, T_4a, T_sat.cond, S.C, T_waterin, T_waterout
         if t_3b_f is not None:
-            results['T cond inlet'] = t_3b_f
-        results['Press disch'] = p_disch_psig
-        if t_4a_f is not None:
-            t_4a_k = f_to_k(t_4a_f)
-            subcool_cond = t_sat_disch_k - t_4a_k
-            results['T cond. Outlet'] = t_4a_f
-            results['T_sat_cond'] = (t_sat_disch_k - 273.15) * 9/5 + 32
-            results['Sub cooling_cond'] = subcool_cond * 9/5
-        # Optional condenser water temperature outputs (pass-through in °F)
-        if t_water_out_f is not None:
-            results['Cond.water.out'] = t_water_out_f
-        if t_water_in_f is not None:
-            results['Cond.water.in'] = t_water_in_f
+            results['T_3b'] = t_3b_f
+            # Calculate enthalpy for P-h diagram (MISSING IN OLD CODE)
+            t_3b_k = f_to_k(t_3b_f)
+            h_3b = CP.PropsSI('H', 'T', t_3b_k, 'P', p_disch_pa, refrigerant)
 
-        # ===== 9. CALCULATE "AT TXV" SECTIONS =====
-        # TXV LH
+        results['P_disch'] = p_disch_psig
+
+        if t_4a_f is not None:
+            results['T_4a'] = t_4a_f
+            t_4a_k = f_to_k(t_4a_f)
+            # Calculate enthalpy for P-h diagram (MISSING IN OLD CODE)
+            h_4a = CP.PropsSI('H', 'T', t_4a_k, 'P', p_disch_pa, refrigerant)
+            subcool_cond = t_sat_disch_k - t_4a_k
+            results['T_sat.cond'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['S.C'] = subcool_cond * 9/5
+
+        # Water temps (MISSING IN OLD CODE)
+        if t_waterin_f is not None:
+            results['T_waterin'] = t_waterin_f
+        if t_waterout_f is not None:
+            results['T_waterout'] = t_waterout_f
+
+        # ===== 9. AT TXV LH (Columns 41-44) =====
+        # Excel column names: T_4b-lh, T_sat.txv.lh, S.C-txv.lh, H_txv.lh
         if t_4b_lh_f is not None:
+            results['T_4b-lh'] = t_4b_lh_f
             t_4b_lh_k = f_to_k(t_4b_lh_f)
             h_4b_lh = CP.PropsSI('H', 'T', t_4b_lh_k, 'P', p_disch_pa, refrigerant)
             subcool_lh = t_sat_disch_k - t_4b_lh_k
 
-            results['TXV in-LH'] = t_4b_lh_f
-            results['T_Saturation_txv_lh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
-            results['Subcooling_txv_lh'] = subcool_lh * 9/5
-            results['Enthalpy_txv_lh'] = h_4b_lh / 1000
+            results['T_sat.txv.lh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['S.C-txv.lh'] = subcool_lh * 9/5
+            results['H_txv.lh'] = h_4b_lh / 1000
 
-        # TXV CTR
+        # ===== 10. AT TXV CTR (Columns 45-48) =====
         if t_4b_ctr_f is not None:
+            results['T_4b-ctr'] = t_4b_ctr_f
             t_4b_ctr_k = f_to_k(t_4b_ctr_f)
             h_4b_ctr = CP.PropsSI('H', 'T', t_4b_ctr_k, 'P', p_disch_pa, refrigerant)
             subcool_ctr = t_sat_disch_k - t_4b_ctr_k
 
-            results['TXV in-CTR'] = t_4b_ctr_f
-            results['T_Saturation_txv_ctr'] = (t_sat_disch_k - 273.15) * 9/5 + 32
-            results['Subcooling_txv_ctr'] = subcool_ctr * 9/5
-            results['Enthalpy_txv_ctr'] = h_4b_ctr / 1000
+            results['T_sat.txv.ctr'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['S.C-txv.ctr'] = subcool_ctr * 9/5
+            results['H_txv.ctr'] = h_4b_ctr / 1000
 
-        # TXV RH
+        # ===== 11. AT TXV RH (Columns 49-52) =====
+        # Note: Excel has typo "T_4b-lh" for column 49, should be T_4b-rh
         if t_4b_rh_f is not None:
+            results['T_4b-rh'] = t_4b_rh_f  # Using correct name not typo
             t_4b_rh_k = f_to_k(t_4b_rh_f)
             h_4b_rh = CP.PropsSI('H', 'T', t_4b_rh_k, 'P', p_disch_pa, refrigerant)
             subcool_rh = t_sat_disch_k - t_4b_rh_k
 
-            results['TXV in-RH'] = t_4b_rh_f
-            results['T_Saturation_txv_rh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
-            results['Subcooling_txv_rh'] = subcool_rh * 9/5
-            results['Enthalpy_txv_rh'] = h_4b_rh / 1000
+            results['T_sat.txv.rh'] = (t_sat_disch_k - 273.15) * 9/5 + 32
+            results['S.C-txv.rh'] = subcool_rh * 9/5
+            results['H_txv.rh'] = h_4b_rh / 1000
 
-        # ===== 10. CALCULATE FINAL PERFORMANCE (MASS FLOW & COOLING CAP) =====
-        # Goal-2C: Only calculate mass flow & cooling capacity if RPM is available
-        # These are the ONLY 2 columns (out of 47) that require RPM
+        # ===== 12. TOTAL (Columns 53-54) =====
+        # Excel column names: m_dot, qc
+        # Goal-2C: Only calculate if RPM is available
         if rpm is not None and rpm > 0 and rho_2b and eta_vol > 0:
             disp_m3 = comp_specs.get('displacement_m3', 0)
             if disp_m3 > 0:
@@ -896,23 +935,49 @@ def calculate_row_performance(
 
                 # Average enthalpy at TXV inlet (average of 3 circuits)
                 h_4b_values = []
-                if t_4b_lh_f is not None:
+                if h_4b_lh is not None:
                     h_4b_values.append(h_4b_lh)
-                if t_4b_ctr_f is not None:
+                if h_4b_ctr is not None:
                     h_4b_values.append(h_4b_ctr)
-                if t_4b_rh_f is not None:
+                if h_4b_rh is not None:
                     h_4b_values.append(h_4b_rh)
 
-                if h_4b_values and t_2b_f is not None:
+                if h_4b_values and h_2b is not None:
                     h_4b_avg = sum(h_4b_values) / len(h_4b_values)
 
                     # Cooling capacity in Watts
                     cooling_cap_w = mass_flow_kgs * (h_2b - h_4b_avg)
 
-                    results['Mass flow rate'] = mass_flow_kgs * 2.20462 * 3600  # to lb/hr
-                    results['Cooling cap'] = cooling_cap_w * 3.41214  # to BTU/hr
-        # If RPM is missing, mass flow and cooling capacity will simply not appear in results
-        # All other calculations (43/47 columns) will still complete successfully
+                    results['m_dot'] = mass_flow_kgs * 2.20462 * 3600  # to lb/hr
+                    results['qc'] = cooling_cap_w * 3.41214  # to BTU/hr
+
+        # ===== 13. P-H DIAGRAM SPECIFIC COLUMNS =====
+        # These columns allow ph_diagram_generator.py to find the data it needs
+        # without renaming existing columns
+        if h_2b is not None:
+            results['h_2b'] = h_2b / 1000  # kJ/kg
+        if h_3a is not None:
+            results['h_3a'] = h_3a / 1000
+        if h_3b is not None:
+            results['h_3b'] = h_3b / 1000
+        if h_4a is not None:
+            results['h_4a'] = h_4a / 1000
+        if h_2a_lh is not None:
+            results['h_2a_LH'] = h_2a_lh / 1000
+        if h_2a_ctr is not None:
+            results['h_2a_CTR'] = h_2a_ctr / 1000
+        if h_2a_rh is not None:
+            results['h_2a_RH'] = h_2a_rh / 1000
+        if h_4b_lh is not None:
+            results['h_4b_LH'] = h_4b_lh / 1000
+        if h_4b_ctr is not None:
+            results['h_4b_CTR'] = h_4b_ctr / 1000
+        if h_4b_rh is not None:
+            results['h_4b_RH'] = h_4b_rh / 1000
+
+        # P-h diagram also needs pressures in Pa
+        results['P_suc'] = p_suc_pa
+        results['P_cond'] = p_disch_pa
 
         return pd.Series(results)
 

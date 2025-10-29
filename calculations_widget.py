@@ -31,42 +31,44 @@ class NestedHeaderView(QHeaderView):
         self.setStretchLastSection(True)
 
         # Define the nested header structure (Top Label, Column Span)
-        # Based on Calculations-DDT.xlsx - Sheet1.csv structure
+        # UPDATED to match Calculations-DDT.xlsx EXACTLY (54 columns total)
         self.groups = [
-            ("AT LH coil", 6),
-            ("AT CTR coil", 6),
-            ("AT RH coil", 6),
+            ("AT LH coil", 8),      # Was 6, now 8 (added T_1a-lh, T_1b-lh)
+            ("AT CTR coil", 8),     # Was 6, now 8 (added T_1a-ctr, T_1b-ctr)
+            ("AT RH coil", 8),      # Was 6, now 8 (added T_1a-rh, T_1c-rh)
             ("At compressor inlet", 7),
             ("Comp outlet", 2),
-            ("At Condenser", 6),
+            ("At Condenser", 7),    # Was 6, now 7 (added T_waterin)
             ("At TXV LH", 4),
             ("At TXV CTR", 4),
             ("At TXV RH", 4),
             ("TOTAL", 2)
         ]
+        # Total: 8+8+8+7+2+7+4+4+4+2 = 54 columns
 
-        # Define the sub-header labels (Row 2 from CSV)
+        # Define the sub-header labels matching EXACT Excel column names
+        # This matches the output from calculate_row_performance()
         self.sub_headers = [
-            # LH Coil (6 cols)
-            "T_2a-LH", "T_sat.lh", "S.H_lh", "H_coil lh", "S_coil lh", "D_coil lh",
-            # CTR Coil (6 cols)
-            "T_2a-ctr", "T_sat.ctr", "S.H_ctr", "H_coil ctr", "S_coil ctr", "D_coil ctr",
-            # RH Coil (6 cols)
-            "T_2a-RH", "T_sat.rh", "S.H_rh", "H_coil rh", "S_coil rh", "D_coil rh",
-            # Compressor Inlet (7 cols)
-            "Press.suc", "Comp.in", "T saturation", "Super heat", "Density", "Enthalpy", "Entropy",
-            # Comp Outlet (2 cols)
-            "T comp outlet", "Comp. rpm",
-            # Condenser (6 cols)
-            "T cond inlet", "Press disch", "T cond. Outlet", "T_sat_cond", "Sub cooling_cond", "Cond.water.out",
-            # TXV LH (4 cols)
-            "TXV in-LH", "T_Saturation_txv_lh", "Subcooling_txv_lh", "Enthalpy_txv_lh",
-            # TXV CTR (4 cols)
-            "TXV in-CTR", "T_Saturation_txv_ctr", "Subcooling_txv_ctr", "Enthalpy_txv_ctr",
-            # TXV RH (4 cols)
-            "TXV in-RH", "T_Saturation_txv_rh", "Subcooling_txv_rh", "Enthalpy_txv_rh",
-            # TOTAL (2 cols)
-            "Mass flow rate", "Cooling cap"
+            # LH Coil (8 cols) - ADDED T_1a-lh, T_1b-lh
+            "T_1a-lh", "T_1b-lh", "T_2a-LH", "T_sat.lh", "S.H_lh coil", "D_coil lh", "H_coil lh", "S_coil lh",
+            # CTR Coil (8 cols) - ADDED T_1a-ctr, T_1b-ctr
+            "T_1a-ctr", "T_1b-ctr", "T_2a-ctr", "T_sat.ctr", "S.H_ctr coil", "D_coil ctr", "H_coil ctr", "S_coil ctr",
+            # RH Coil (8 cols) - ADDED T_1a-rh, T_1c-rh
+            "T_1a-rh", "T_1c-rh", "T_2a-RH", "T_sat.rh", "S.H_rh coil", "D_coil rh", "H_coil rh", "S_coil rh",
+            # Compressor Inlet (7 cols) - UPDATED to Excel names
+            "P_suction", "T_2b", "T_sat.comp.in", "S.H_total", "D_comp.in", "H_comp.in", "S_comp.in",
+            # Comp Outlet (2 cols) - UPDATED to Excel names
+            "T_3a", "rpm",
+            # Condenser (7 cols) - UPDATED to Excel names, ADDED T_waterin, T_waterout
+            "T_3b", "P_disch", "T_4a", "T_sat.cond", "S.C", "T_waterin", "T_waterout",
+            # TXV LH (4 cols) - UPDATED to Excel names
+            "T_4b-lh", "T_sat.txv.lh", "S.C-txv.lh", "H_txv.lh",
+            # TXV CTR (4 cols) - UPDATED to Excel names
+            "T_4b-ctr", "T_sat.txv.ctr", "S.C-txv.ctr", "H_txv.ctr",
+            # TXV RH (4 cols) - UPDATED to Excel names
+            "T_4b-rh", "T_sat.txv.rh", "S.C-txv.rh", "H_txv.rh",
+            # TOTAL (2 cols) - UPDATED to Excel names
+            "m_dot", "qc"
         ]
 
         # Define the data keys (Row 3 from CSV - actual DataFrame column names)
