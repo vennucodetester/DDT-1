@@ -141,11 +141,31 @@ class PhDiagramInteractiveWidget(QWidget):
     def load_filtered_data(self, filtered_df, circuit_data=None):
         """
         Load filtered data from Calculations tab and prepare for plotting.
-        
+
         Args:
             filtered_df: DataFrame with calculated columns
             circuit_data: Optional (not used in this version)
         """
+        # GUARD CLAUSE: Check for rated inputs (Goal-2 Phase 4)
+        # Don't plot if rated inputs are missing (Calculations tab will show the error)
+        required_fields = [
+            'm_dot_rated_lbhr',
+            'hz_rated',
+            'disp_ft3',
+            'rated_evap_temp_f',
+            'rated_return_gas_temp_f',
+        ]
+
+        rated_inputs = self.data_manager.rated_inputs
+        missing = any(rated_inputs.get(f) is None or rated_inputs.get(f) == 0.0 for f in required_fields)
+
+        if missing:
+            # Don't show error here - Calculations tab already did
+            # Just return early without plotting
+            self.status_label.setText("⚠️ Rated inputs required. Use Calculations tab to enter them.")
+            self.status_label.setStyleSheet("color: orange;")
+            return
+
         if filtered_df is None or filtered_df.empty:
             self.status_label.setText("❌ No data to display. Filter data in Calculations tab first.")
             self.status_label.setStyleSheet("color: red;")
