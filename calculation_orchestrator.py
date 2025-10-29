@@ -411,20 +411,23 @@ REQUIRED_SENSOR_ROLES = {
     'T_waterout': [('Condenser', 'water_outlet')],
 
     # LH circuit (ADDED T_1a-lh, T_1b-lh - were missing)
+    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
     'T_1a-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],
-    'T_1b-lh': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Left'})],
+    'T_1b-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],  # FIXED: was 'coil_inlet_1'
     'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
     'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
 
     # CTR circuit (ADDED T_1a-ctr, T_1b-ctr - were missing)
+    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
     'T_1a-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],
-    'T_1b-ctr': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Center'})],
+    'T_1b-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],  # FIXED: was 'coil_inlet_1'
     'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
     'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
 
     # RH circuit (ADDED T_1a-rh, T_1c-rh - were missing)
+    # FIXED: T_1c now correctly maps to evaporator inlet (same as T_1a)
     'T_1a-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],
-    'T_1c-rh': [('Evaporator', 'coil_inlet_1', {'circuit_label': 'Right'})],
+    'T_1c-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],  # FIXED: was 'coil_inlet_1'
     'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
     'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
 
