@@ -607,5 +607,8 @@ def run_batch_processing(
     print(f"[BATCH PROCESSING] Output DataFrame has {len(results_df)} rows and {len(results_df.columns)} columns")
     print(f"[BATCH PROCESSING] Output columns: {list(results_df.columns)}")
 
+    # Store sensor_map in DataFrame attributes for UI tooltip display
+    results_df.attrs['sensor_map'] = sensor_map
+
     return results_df
 

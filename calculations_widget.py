@@ -25,11 +25,15 @@ class NestedHeaderView(QHeaderView):
     - Row 1: Main section headers (e.g., "AT LH coil", "At compressor inlet")
     - Row 2: Sub-section headers (e.g., "TXV out", "Coil out", "Density")
     - Row 3: Actual column names (e.g., "T_1a-lh", "D_coil lh")
+
+    Also provides tooltips showing which CSV columns/sensors map to each calculated column.
     """
 
     def __init__(self, parent=None):
         super().__init__(Qt.Orientation.Horizontal, parent)
         self.setStretchLastSection(True)
+        self.setMouseTracking(True)  # Enable mouse tracking for tooltips
+        self.sensor_map_tooltips = {}  # Will be populated with sensor mappings
 
         # Row 1: Main section headers (Top Label, Column Span)
         self.main_sections = [
@@ -165,6 +169,26 @@ class NestedHeaderView(QHeaderView):
         size.setHeight(size.height() * 3)
         return size
 
+    def set_sensor_mappings(self, sensor_map):
+        """
+        Set sensor mapping information for tooltips.
+
+        Args:
+            sensor_map: Dict mapping calculation keys to actual CSV column names
+                       e.g., {'P_suc': 'Suction line into Comp', 'T_2b': 'Discharge line from comp'}
+        """
+        self.sensor_map_tooltips = sensor_map or {}
+
+        # Set tooltips on each section based on the sensor map
+        for col_idx, col_name in enumerate(self.column_names):
+            if col_name in self.sensor_map_tooltips:
+                csv_column = self.sensor_map_tooltips[col_name]
+                tooltip = f"Calculated Column: {col_name}\nSource CSV Column: {csv_column}"
+                self.model().setHeaderData(col_idx, Qt.Orientation.Horizontal, tooltip, Qt.ItemDataRole.ToolTipRole)
+            else:
+                tooltip = f"Calculated Column: {col_name}\n(Derived from CoolProp calculations)"
+                self.model().setHeaderData(col_idx, Qt.Orientation.Horizontal, tooltip, Qt.ItemDataRole.ToolTipRole)
+
 
 class CalculationsWidget(QWidget):
     """
@@ -250,6 +274,10 @@ class CalculationsWidget(QWidget):
         # Create and set custom header
         self.header = NestedHeaderView(self.tree_widget)
         self.tree_widget.setHeader(self.header)
+
+        # Ensure header has proper height for 3 rows
+        self.header.setMinimumHeight(75)  # Ensure 3-row header is visible
+        self.header.setMaximumHeight(120)
 
         # Set the sub-header labels
         self.tree_widget.setHeaderLabels(self.header.sub_headers)
@@ -400,6 +428,13 @@ class CalculationsWidget(QWidget):
 
             # 4. Store and display results
             self.processed_df = processed_df
+
+            # 4.5. Update header tooltips with sensor mappings
+            if hasattr(processed_df, 'attrs') and 'sensor_map' in processed_df.attrs:
+                sensor_map = processed_df.attrs['sensor_map']
+                self.header.set_sensor_mappings(sensor_map)
+                print(f"[CALCULATIONS] Set {len(sensor_map)} sensor mapping tooltips")
+
             self.populate_tree(processed_df)
 
             # 5. Enable export
