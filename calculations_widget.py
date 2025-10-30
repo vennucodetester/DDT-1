@@ -104,10 +104,7 @@ class NestedHeaderView(QHeaderView):
 
     def paintEvent(self, event):
         """Custom paint event to draw 3-ROW nested headers."""
-        # Draw the base header (row 3 - column names)
-        super().paintEvent(event)
-
-        painter = QPainter(self)
+        painter = QPainter(self.viewport())
         painter.save()
 
         height_third = self.height() // 3
@@ -160,6 +157,27 @@ class NestedHeaderView(QHeaderView):
             painter.setPen(QColor(100, 100, 100))
             painter.drawRect(rect.adjusted(0, 0, -1, -1))
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, sub_text)
+
+        # ===== ROW 3: Column Names (Bottom third) =====
+        font.setBold(False)
+        font.setItalic(False)
+        font.setPointSize(self.font().pointSize())
+        painter.setFont(font)
+        painter.fillRect(0, height_third * 2, self.width(), height_third, QColor(255, 255, 255))
+
+        for col_idx, col_name in enumerate(self.column_names):
+            col_rect = self.sectionViewportPosition(col_idx)
+            col_width = self.sectionSize(col_idx)
+
+            rect = self.rect()
+            rect.setLeft(col_rect)
+            rect.setWidth(col_width)
+            rect.setTop(height_third * 2)
+            rect.setHeight(height_third)
+
+            painter.setPen(QColor(0, 0, 0))
+            painter.drawRect(rect.adjusted(0, 0, -1, -1))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, col_name)
 
         painter.restore()
 
