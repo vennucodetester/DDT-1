@@ -1385,6 +1385,85 @@ class DataManager(QObject):
             'mapped_to_role': mapped_role,
             'total_mappings': len(roles)
         }
+
+    # === Mapping exports for audit/remapping ===
+    def export_port_mapping_csv(self, output_path: str = "port_mapping_audit.csv") -> str:
+        """
+        Export every component port with its role keys and currently mapped CSV column.
+
+        Columns: componentId,type,circuit_label,port,label,roleKeyPrimary,roleKeyFallback,csv_column,sensor_number,current_value
+        Returns the written path.
+        """
+        try:
+            import csv
+            from port_resolver import list_all_ports
+
+            rows = list_all_ports(self)
+
+            with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "componentId","type","circuit_label","port","label",
+                    "roleKeyPrimary","roleKeyFallback","csv_column","sensor_number","current_value"
+                ])
+                for r in rows:
+                    props = r.get('properties') or {}
+                    writer.writerow([
+                        r.get('componentId'),
+                        r.get('type'),
+                        props.get('circuit_label', ''),
+                        r.get('port'),
+                        r.get('label'),
+                        r.get('roleKeyPrimary'),
+                        r.get('roleKeyFallback'),
+                        r.get('sensor') or '',
+                        r.get('sensorNumber') or '',
+                        r.get('value') if r.get('value') is not None else ''
+                    ])
+            print(f"[MAPPING EXPORT] Wrote port mapping audit to {output_path}")
+            return output_path
+        except Exception as e:
+            print(f"[MAPPING EXPORT] ERROR exporting port mapping: {e}")
+            return output_path
+
+    def export_required_roles_csv(self, output_path: str = "required_roles_mapping.csv") -> str:
+        """
+        Export the REQUIRED_SENSOR_ROLES with the currently resolved CSV column for each role.
+
+        Columns: role_key,component_type,port_name,csv_column
+        Returns the written path.
+        """
+        try:
+            import csv
+            from calculation_orchestrator import REQUIRED_SENSOR_ROLES, _find_sensor_for_role
+
+            model = self.diagram_model
+            with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.writer(f)
+                writer.writerow(["role_key","component_type","port_name","csv_column"])
+                for role_key, defs in REQUIRED_SENSOR_ROLES.items():
+                    # Write first matching mapping (same resolution logic as calculation)
+                    csv_col = ''
+                    comp_type = ''
+                    port_name = ''
+                    if defs:
+                        comp_type = defs[0][0]
+                        port_name = defs[0][1]
+                    try:
+                        mapped = None
+                        for role_def in defs:
+                            mapped = _find_sensor_for_role(model, role_def)
+                            if mapped:
+                                break
+                        csv_col = mapped or ''
+                    except Exception:
+                        csv_col = ''
+                    writer.writerow([role_key, comp_type, port_name, csv_col])
+            print(f"[MAPPING EXPORT] Wrote required roles mapping to {output_path}")
+            return output_path
+        except Exception as e:
+            print(f"[MAPPING EXPORT] ERROR exporting required roles: {e}")
+            return output_path
     
     def debug_sensor_mappings(self):
         """Print debug information about all sensor mappings."""

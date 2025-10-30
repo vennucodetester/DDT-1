@@ -519,11 +519,11 @@ def run_batch_processing(
     warnings = eta_vol_results.get('warnings', [])
 
     if method == 'default':
-        print(f"[BATCH PROCESSING] ⚠️  Using default eta_vol = {eta_vol:.4f}")
+        print(f"[BATCH PROCESSING] WARNING: Using default eta_vol = {eta_vol:.4f}")
         for warning in warnings:
-            print(f"[BATCH PROCESSING] ⚠️  {warning}")
+            print(f"[BATCH PROCESSING] WARNING: {warning}")
     else:
-        print(f"[BATCH PROCESSING] ✓ Step 1 complete: eta_vol = {eta_vol:.4f} (calculated from rated inputs)")
+        print(f"[BATCH PROCESSING] Step 1 complete: eta_vol = {eta_vol:.4f} (calculated from rated inputs)")
 
     # === STEP 2: GET COMPRESSOR SPECS ===
     # Convert displacement from user input (ft³) to m³ for the engine
@@ -533,23 +533,27 @@ def run_batch_processing(
     comp_specs = {
         'displacement_m3': ft3_to_m3(rated_disp_ft3)
     }
-    print(f"[BATCH PROCESSING] Compressor displacement: {rated_disp_ft3} ft³ = {comp_specs['displacement_m3']:.6f} m³")
+    print(f"[BATCH PROCESSING] Compressor displacement: {rated_disp_ft3} ft^3 = {comp_specs['displacement_m3']:.6f} m^3")
 
     # === STEP 3: BUILD THE SENSOR NAME MAP ===
     diagram_model = data_manager.diagram_model
     sensor_map = {}
 
+    # Validate against actual input columns to avoid ghost/adjacent values
+    input_columns = set(input_dataframe.columns if input_dataframe is not None else [])
+
     for key, role_defs in REQUIRED_SENSOR_ROLES.items():
         for role_def in role_defs:
             sensor_name = _find_sensor_for_role(diagram_model, role_def)
-            if sensor_name:
+            # Only accept mappings that exist in the current input dataframe
+            if sensor_name and sensor_name in input_columns:
                 sensor_map[key] = sensor_name
                 break  # Found it
 
         if key not in sensor_map:
-            print(f"[BATCH PROCESSING] WARNING: No sensor mapped for required role '{key}'")
+            print(f"[BATCH PROCESSING] WARNING: No sensor mapped for required role '{key}' (or column missing in input data)")
 
-    print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} mappings")
+    print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} valid mappings (validated against DataFrame columns)")
     print(f"[BATCH PROCESSING] Sensor map: {sensor_map}")
 
     # === STEP 4: RUN STEP 2 (ROW-BY-ROW PROCESSING) ===
