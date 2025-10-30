@@ -592,15 +592,13 @@ def run_batch_processing(
     # === STEP 4: RUN STEP 2 (ROW-BY-ROW PROCESSING) ===
     print(f"[BATCH PROCESSING] Starting row-by-row calculation...")
 
-    # CRITICAL FIX: Pass data_manager so calculation_engine can do proper column resolution
     results_df = input_dataframe.apply(
         calculate_row_performance,
         axis=1,
         sensor_map=sensor_map,
         eta_vol=eta_vol,
         comp_specs=comp_specs,
-        refrigerant=refrigerant,
-        data_manager=data_manager  # NEW: Enable column name resolution
+        refrigerant=refrigerant
     )
 
     print(f"[BATCH PROCESSING] Row-by-row calculation complete!")
