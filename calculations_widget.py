@@ -99,11 +99,8 @@ class NestedHeaderView(QHeaderView):
         self.data_keys = self.column_names
 
     def paintEvent(self, event):
-        """Custom paint event to draw 3-ROW nested headers."""
-        # Draw the base header (row 3 - column names)
-        super().paintEvent(event)
-
-        painter = QPainter(self)
+        """Custom paint event to draw 3-ROW nested headers (we fully render all rows)."""
+        painter = QPainter(self.viewport())
         painter.save()
 
         height_third = self.height() // 3
@@ -156,6 +153,27 @@ class NestedHeaderView(QHeaderView):
             painter.setPen(QColor(100, 100, 100))
             painter.drawRect(rect.adjusted(0, 0, -1, -1))
             painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, sub_text)
+
+        # ===== ROW 3: Actual column names (Bottom third) =====
+        font.setItalic(False)
+        font.setBold(False)
+        font.setPointSize(max(9, font.pointSize()))
+        painter.setFont(font)
+        painter.fillRect(0, height_third * 2, self.width(), height_third, QColor(255, 255, 255))
+
+        for col_idx, col_name in enumerate(self.column_names):
+            col_rect = self.sectionViewportPosition(col_idx)
+            col_width = self.sectionSize(col_idx)
+
+            rect = self.rect()
+            rect.setLeft(col_rect)
+            rect.setWidth(col_width)
+            rect.setTop(height_third * 2)
+            rect.setHeight(height_third)
+
+            painter.setPen(QColor(120, 120, 120))
+            painter.drawRect(rect.adjusted(0, 0, -1, -1))
+            painter.drawText(rect.adjusted(2, 0, -2, 0), Qt.AlignmentFlag.AlignCenter, col_name)
 
         painter.restore()
 
@@ -268,6 +286,12 @@ class CalculationsWidget(QWidget):
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_to_csv)
         export_layout.addWidget(self.export_button)
+
+        # Mapping audit export
+        self.export_mapping_button = QPushButton("Export Mapping Audit")
+        self.export_mapping_button.setToolTip("Export port mapping and required roles to CSV")
+        self.export_mapping_button.clicked.connect(self.export_mapping_audit)
+        export_layout.addWidget(self.export_mapping_button)
 
         export_layout.addStretch()
 
@@ -399,6 +423,10 @@ class CalculationsWidget(QWidget):
                 return
 
             # 4. Store and display results
+            # Force a stable schema: include ALL expected columns and fill missing with NaN
+            # This prevents adjacent/shifted values when some sensors are unmapped
+            expected_cols = list(self.header.data_keys)
+            processed_df = processed_df.reindex(columns=expected_cols)
             self.processed_df = processed_df
             self.populate_tree(processed_df)
 
@@ -439,10 +467,19 @@ class CalculationsWidget(QWidget):
             row_data = []
             for key in data_keys:
                 val = row.get(key)
-                if isinstance(val, (int, float)):
+                # Treat NaN/NA as missing
+                try:
+                    import math
+                    is_missing = val is None or (isinstance(val, float) and math.isnan(val))
+                except Exception:
+                    # Fallback for pandas NA
+                    is_missing = val is None
+                if is_missing:
+                    row_data.append("---")
+                elif isinstance(val, (int, float)):
                     row_data.append(f"{val:.2f}")  # Format numbers
                 else:
-                    row_data.append(str(val) if val is not None else "---")
+                    row_data.append(str(val))
 
             item = QTreeWidgetItem(row_data)
             items.append(item)
@@ -474,7 +511,10 @@ class CalculationsWidget(QWidget):
             return  # User cancelled
 
         try:
-            self.processed_df.to_csv(filename, index=False)
+            # Export only the displayed columns, in the same order, with UTF-8 BOM
+            display_keys = [k for k in self.header.data_keys if k in self.processed_df.columns]
+            export_df = self.processed_df[display_keys] if display_keys else self.processed_df
+            export_df.to_csv(filename, index=False, encoding='utf-8-sig')
             QMessageBox.information(
                 self,
                 "Export Successful",
@@ -485,3 +525,17 @@ class CalculationsWidget(QWidget):
         except Exception as e:
             print(f"[CALCULATIONS] ERROR during export: {e}")
             QMessageBox.critical(self, "Export Error", f"Failed to export:\n{str(e)}")
+
+    def export_mapping_audit(self):
+        """Export both port-level mapping and required role mapping CSVs for auditing."""
+        try:
+            port_path = self.data_manager.export_port_mapping_csv("port_mapping_audit.csv")
+            roles_path = self.data_manager.export_required_roles_csv("required_roles_mapping.csv")
+            QMessageBox.information(
+                self,
+                "Mapping Audit Exported",
+                f"Wrote:\n- {port_path}\n- {roles_path}\n\nAttach these CSVs with corrections to remap."
+            )
+        except Exception as e:
+            print(f"[MAPPING EXPORT] ERROR: {e}")
+            QMessageBox.critical(self, "Mapping Export Error", str(e))

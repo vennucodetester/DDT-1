@@ -1,0 +1,126 @@
+﻿componentId,type,circuit_label,port,label,roleKeyPrimary,roleKeyFallback,csv_column,sensor_number,current_value
+compressor_a91fd4,Compressor,,inlet,Compressor Inlet,Compressor.compressor_a91fd4.inlet,compressor_a91fd4.inlet,Suction line into Comp,59,49.649711338888885
+compressor_a91fd4,Compressor,,outlet,Compressor Outlet,Compressor.compressor_a91fd4.outlet,compressor_a91fd4.outlet,Discharge line from comp,121,131.30724765069445
+compressor_a91fd4,Compressor,,SP,Suction Pressure,Compressor.compressor_a91fd4.SP,compressor_a91fd4.SP,Suction Presure ,129,36.94555625416667
+compressor_a91fd4,Compressor,,DP,Discharge Pressure,Compressor.compressor_a91fd4.DP,compressor_a91fd4.DP,Liquid Pressure ,130,123.94437709583335
+compressor_a91fd4,Compressor,,RPM,Compressor RPM,Compressor.compressor_a91fd4.RPM,compressor_a91fd4.RPM,Compressor RPM,131,3366.361604411111
+condenser_fba9eb,Condenser,,inlet,Condenser Inlet,Condenser.condenser_fba9eb.inlet,condenser_fba9eb.inlet,Ref Temp in HeatX,117,133.61266278680554
+condenser_fba9eb,Condenser,,outlet,Condenser Outlet,Condenser.condenser_fba9eb.outlet,condenser_fba9eb.outlet,Ref Temp out HeatX,118,84.19934539444445
+junction_fddd85,Junction,,sensor,Junction Sensor,Junction.junction_fddd85.sensor,junction_fddd85.sensor,,,
+junction_fddd85,Junction,,inlet_1,Junction Inlet 1,Junction.junction_fddd85.inlet_1,junction_fddd85.inlet_1,Liquid into main distributor,128,73.06446710694445
+junction_fddd85,Junction,,outlet_1,Junction Outlet 1,Junction.junction_fddd85.outlet_1,junction_fddd85.outlet_1,,,
+junction_fddd85,Junction,,outlet_2,Junction Outlet 2,Junction.junction_fddd85.outlet_2,junction_fddd85.outlet_2,,,
+junction_fddd85,Junction,,outlet_3,Junction Outlet 3,Junction.junction_fddd85.outlet_3,junction_fddd85.outlet_3,,,
+txv_18cc9b,TXV,Left,inlet,TXV Left Inlet,TXV.txv_18cc9b.inlet,txv_18cc9b.inlet,Left TXV Inlet,32,75.63858097013889
+txv_18cc9b,TXV,Left,outlet,TXV Left Outlet,TXV.txv_18cc9b.outlet,txv_18cc9b.outlet,,,
+txv_18cc9b,TXV,Left,bulb,TXV Left Bulb,TXV.txv_18cc9b.bulb,txv_18cc9b.bulb,,,
+txv_ef0693,TXV,Center,inlet,TXV Center Inlet,TXV.txv_ef0693.inlet,txv_ef0693.inlet,CTR TXV Inlet,44,73.06664881666667
+txv_ef0693,TXV,Center,outlet,TXV Center Outlet,TXV.txv_ef0693.outlet,txv_ef0693.outlet,,,
+txv_ef0693,TXV,Center,bulb,TXV Center Bulb,TXV.txv_ef0693.bulb,txv_ef0693.bulb,,,
+txv_e5856c,TXV,Right,inlet,TXV Right Inlet,TXV.txv_e5856c.inlet,txv_e5856c.inlet,Right TXV Inlet ,49,71.4467799576389
+txv_e5856c,TXV,Right,outlet,TXV Right Outlet,TXV.txv_e5856c.outlet,txv_e5856c.outlet,,,
+txv_e5856c,TXV,Right,bulb,TXV Right Bulb,TXV.txv_e5856c.bulb,txv_e5856c.bulb,,,
+distributor_954fc2,Distributor,Left,inlet,Left Distributor Inlet,Distributor.distributor_954fc2.inlet,distributor_954fc2.inlet,,,
+distributor_954fc2,Distributor,Left,outlet_1,Left Distributor Outlet 1,Distributor.distributor_954fc2.outlet_1,distributor_954fc2.outlet_1,,,
+distributor_954fc2,Distributor,Left,outlet_2,Left Distributor Outlet 2,Distributor.distributor_954fc2.outlet_2,distributor_954fc2.outlet_2,,,
+distributor_954fc2,Distributor,Left,outlet_3,Left Distributor Outlet 3,Distributor.distributor_954fc2.outlet_3,distributor_954fc2.outlet_3,,,
+distributor_954fc2,Distributor,Left,outlet_4,Left Distributor Outlet 4,Distributor.distributor_954fc2.outlet_4,distributor_954fc2.outlet_4,,,
+distributor_954fc2,Distributor,Left,outlet_5,Left Distributor Outlet 5,Distributor.distributor_954fc2.outlet_5,distributor_954fc2.outlet_5,,,
+distributor_954fc2,Distributor,Left,outlet_6,Left Distributor Outlet 6,Distributor.distributor_954fc2.outlet_6,distributor_954fc2.outlet_6,,,
+evaporator_3408df,Evaporator,Left,inlet_circuit_1,Left Evap Inlet 1,Evaporator.evaporator_3408df.inlet_circuit_1,evaporator_3408df.inlet_circuit_1,Left Coil Inlet 1,35,29.076247929166666
+evaporator_3408df,Evaporator,Left,inlet_circuit_2,Left Evap Inlet 2,Evaporator.evaporator_3408df.inlet_circuit_2,evaporator_3408df.inlet_circuit_2,Left Coil Inlet 2,36,30.506636381944443
+evaporator_3408df,Evaporator,Left,inlet_circuit_3,Left Evap Inlet 3,Evaporator.evaporator_3408df.inlet_circuit_3,evaporator_3408df.inlet_circuit_3,Left Coil Inlet 3,37,29.720989935416664
+evaporator_3408df,Evaporator,Left,inlet_circuit_4,Left Evap Inlet 4,Evaporator.evaporator_3408df.inlet_circuit_4,evaporator_3408df.inlet_circuit_4,Left Coil Inlet 4,38,31.189617810416667
+evaporator_3408df,Evaporator,Left,inlet_circuit_5,Left Evap Inlet 5,Evaporator.evaporator_3408df.inlet_circuit_5,evaporator_3408df.inlet_circuit_5,Left Coil Inlet 5,39,30.070526753472222
+evaporator_3408df,Evaporator,Left,inlet_circuit_6,Left Evap Inlet 6,Evaporator.evaporator_3408df.inlet_circuit_6,evaporator_3408df.inlet_circuit_6,Left Coil Inlet 6,40,30.182420941666663
+evaporator_3408df,Evaporator,Left,outlet_circuit_1,Left Evap Outlet 1,Evaporator.evaporator_3408df.outlet_circuit_1,evaporator_3408df.outlet_circuit_1,Left Coil Outlet 1,41,47.06751555486112
+evaporator_3408df,Evaporator,Left,outlet_circuit_2,Left Evap Outlet 2,Evaporator.evaporator_3408df.outlet_circuit_2,evaporator_3408df.outlet_circuit_2,Left Coil Out 2,42,45.06442274583333
+evaporator_3408df,Evaporator,Left,outlet_circuit_3,Left Evap Outlet 3,Evaporator.evaporator_3408df.outlet_circuit_3,evaporator_3408df.outlet_circuit_3,Left Coil Out 3,43,45.1480004875
+evaporator_3408df,Evaporator,Left,outlet_circuit_4,Left Evap Outlet 4,Evaporator.evaporator_3408df.outlet_circuit_4,evaporator_3408df.outlet_circuit_4,,,
+evaporator_3408df,Evaporator,Left,outlet_circuit_5,Left Evap Outlet 5,Evaporator.evaporator_3408df.outlet_circuit_5,evaporator_3408df.outlet_circuit_5,,,
+evaporator_3408df,Evaporator,Left,outlet_circuit_6,Left Evap Outlet 6,Evaporator.evaporator_3408df.outlet_circuit_6,evaporator_3408df.outlet_circuit_6,,,
+junction_3c29dc,Junction,Right,sensor,Right Junction Sensor,Junction.junction_3c29dc.sensor,junction_3c29dc.sensor,,,
+junction_3c29dc,Junction,Right,inlet_1,Right Junction Inlet 1,Junction.junction_3c29dc.inlet_1,junction_3c29dc.inlet_1,,,
+junction_3c29dc,Junction,Right,inlet_2,Right Junction Inlet 2,Junction.junction_3c29dc.inlet_2,junction_3c29dc.inlet_2,,,
+junction_3c29dc,Junction,Right,outlet_1,Right Junction Outlet 1,Junction.junction_3c29dc.outlet_1,junction_3c29dc.outlet_1,,,
+junction_7a9b00,Junction,Center,sensor,Center Junction Sensor,Junction.junction_7a9b00.sensor,junction_7a9b00.sensor,,,
+junction_7a9b00,Junction,Center,inlet_1,Center Junction Inlet 1,Junction.junction_7a9b00.inlet_1,junction_7a9b00.inlet_1,,,
+junction_7a9b00,Junction,Center,inlet_2,Center Junction Inlet 2,Junction.junction_7a9b00.inlet_2,junction_7a9b00.inlet_2,,,
+junction_7a9b00,Junction,Center,outlet_1,Center Junction Outlet 1,Junction.junction_7a9b00.outlet_1,junction_7a9b00.outlet_1,,,
+junction_724126,Junction,Left,sensor,Left Junction Sensor,Junction.junction_724126.sensor,junction_724126.sensor,,,
+junction_724126,Junction,Left,inlet_1,Left Junction Inlet 1,Junction.junction_724126.inlet_1,junction_724126.inlet_1,,,
+junction_724126,Junction,Left,inlet_2,Left Junction Inlet 2,Junction.junction_724126.inlet_2,junction_724126.inlet_2,,,
+junction_724126,Junction,Left,inlet_3,Left Junction Inlet 3,Junction.junction_724126.inlet_3,junction_724126.inlet_3,,,
+junction_724126,Junction,Left,inlet_4,Left Junction Inlet 4,Junction.junction_724126.inlet_4,junction_724126.inlet_4,,,
+junction_724126,Junction,Left,inlet_5,Left Junction Inlet 5,Junction.junction_724126.inlet_5,junction_724126.inlet_5,,,
+junction_724126,Junction,Left,inlet_6,Left Junction Inlet 6,Junction.junction_724126.inlet_6,junction_724126.inlet_6,,,
+junction_724126,Junction,Left,outlet_1,Left Junction Outlet 1,Junction.junction_724126.outlet_1,junction_724126.outlet_1,,,
+evaporator_5b2824,Evaporator,Center,inlet_circuit_1,Center Evap Inlet 1,Evaporator.evaporator_5b2824.inlet_circuit_1,evaporator_5b2824.inlet_circuit_1,CTR Coil Inlet ,47,27.172123819444444
+evaporator_5b2824,Evaporator,Center,inlet_circuit_2,Center Evap Inlet 2,Evaporator.evaporator_5b2824.inlet_circuit_2,evaporator_5b2824.inlet_circuit_2,,,
+evaporator_5b2824,Evaporator,Center,inlet_circuit_3,Center Evap Inlet 3,Evaporator.evaporator_5b2824.inlet_circuit_3,evaporator_5b2824.inlet_circuit_3,,,
+evaporator_5b2824,Evaporator,Center,inlet_circuit_4,Center Evap Inlet 4,Evaporator.evaporator_5b2824.inlet_circuit_4,evaporator_5b2824.inlet_circuit_4,,,
+evaporator_5b2824,Evaporator,Center,inlet_circuit_5,Center Evap Inlet 5,Evaporator.evaporator_5b2824.inlet_circuit_5,evaporator_5b2824.inlet_circuit_5,,,
+evaporator_5b2824,Evaporator,Center,inlet_circuit_6,Center Evap Inlet 6,Evaporator.evaporator_5b2824.inlet_circuit_6,evaporator_5b2824.inlet_circuit_6,,,
+evaporator_5b2824,Evaporator,Center,outlet_circuit_1,Center Evap Outlet 1,Evaporator.evaporator_5b2824.outlet_circuit_1,evaporator_5b2824.outlet_circuit_1,CTR Coil Outlet ,48,40.234781242361116
+evaporator_5b2824,Evaporator,Center,outlet_circuit_2,Center Evap Outlet 2,Evaporator.evaporator_5b2824.outlet_circuit_2,evaporator_5b2824.outlet_circuit_2,,,
+evaporator_5b2824,Evaporator,Center,outlet_circuit_3,Center Evap Outlet 3,Evaporator.evaporator_5b2824.outlet_circuit_3,evaporator_5b2824.outlet_circuit_3,,,
+evaporator_5b2824,Evaporator,Center,outlet_circuit_4,Center Evap Outlet 4,Evaporator.evaporator_5b2824.outlet_circuit_4,evaporator_5b2824.outlet_circuit_4,,,
+evaporator_5b2824,Evaporator,Center,outlet_circuit_5,Center Evap Outlet 5,Evaporator.evaporator_5b2824.outlet_circuit_5,evaporator_5b2824.outlet_circuit_5,,,
+evaporator_5b2824,Evaporator,Center,outlet_circuit_6,Center Evap Outlet 6,Evaporator.evaporator_5b2824.outlet_circuit_6,evaporator_5b2824.outlet_circuit_6,,,
+distributor_c9cc9b,Distributor,Center,inlet,Center Distributor Inlet,Distributor.distributor_c9cc9b.inlet,distributor_c9cc9b.inlet,Into CTR Distrubutor,45,53.03720716666667
+distributor_c9cc9b,Distributor,Center,outlet_1,Center Distributor Outlet 1,Distributor.distributor_c9cc9b.outlet_1,distributor_c9cc9b.outlet_1,,,
+distributor_c9cc9b,Distributor,Center,outlet_2,Center Distributor Outlet 2,Distributor.distributor_c9cc9b.outlet_2,distributor_c9cc9b.outlet_2,,,
+distributor_c9cc9b,Distributor,Center,outlet_3,Center Distributor Outlet 3,Distributor.distributor_c9cc9b.outlet_3,distributor_c9cc9b.outlet_3,,,
+distributor_c9cc9b,Distributor,Center,outlet_4,Center Distributor Outlet 4,Distributor.distributor_c9cc9b.outlet_4,distributor_c9cc9b.outlet_4,,,
+distributor_c9cc9b,Distributor,Center,outlet_5,Center Distributor Outlet 5,Distributor.distributor_c9cc9b.outlet_5,distributor_c9cc9b.outlet_5,,,
+distributor_c9cc9b,Distributor,Center,outlet_6,Center Distributor Outlet 6,Distributor.distributor_c9cc9b.outlet_6,distributor_c9cc9b.outlet_6,,,
+junction_07f92f,Junction,Center,sensor,Center Junction Sensor,Junction.junction_07f92f.sensor,junction_07f92f.sensor,,,
+junction_07f92f,Junction,Center,inlet_1,Center Junction Inlet 1,Junction.junction_07f92f.inlet_1,junction_07f92f.inlet_1,,,
+junction_07f92f,Junction,Center,inlet_2,Center Junction Inlet 2,Junction.junction_07f92f.inlet_2,junction_07f92f.inlet_2,,,
+junction_07f92f,Junction,Center,inlet_3,Center Junction Inlet 3,Junction.junction_07f92f.inlet_3,junction_07f92f.inlet_3,,,
+junction_07f92f,Junction,Center,inlet_4,Center Junction Inlet 4,Junction.junction_07f92f.inlet_4,junction_07f92f.inlet_4,,,
+junction_07f92f,Junction,Center,inlet_5,Center Junction Inlet 5,Junction.junction_07f92f.inlet_5,junction_07f92f.inlet_5,,,
+junction_07f92f,Junction,Center,inlet_6,Center Junction Inlet 6,Junction.junction_07f92f.inlet_6,junction_07f92f.inlet_6,,,
+junction_07f92f,Junction,Center,outlet_1,Center Junction Outlet 1,Junction.junction_07f92f.outlet_1,junction_07f92f.outlet_1,,,
+junction_746e22,Junction,Right,sensor,Right Junction Sensor,Junction.junction_746e22.sensor,junction_746e22.sensor,,,
+junction_746e22,Junction,Right,inlet_1,Right Junction Inlet 1,Junction.junction_746e22.inlet_1,junction_746e22.inlet_1,,,
+junction_746e22,Junction,Right,inlet_2,Right Junction Inlet 2,Junction.junction_746e22.inlet_2,junction_746e22.inlet_2,,,
+junction_746e22,Junction,Right,inlet_3,Right Junction Inlet 3,Junction.junction_746e22.inlet_3,junction_746e22.inlet_3,,,
+junction_746e22,Junction,Right,inlet_4,Right Junction Inlet 4,Junction.junction_746e22.inlet_4,junction_746e22.inlet_4,,,
+junction_746e22,Junction,Right,inlet_5,Right Junction Inlet 5,Junction.junction_746e22.inlet_5,junction_746e22.inlet_5,,,
+junction_746e22,Junction,Right,inlet_6,Right Junction Inlet 6,Junction.junction_746e22.inlet_6,junction_746e22.inlet_6,,,
+junction_746e22,Junction,Right,outlet_1,Right Junction Outlet 1,Junction.junction_746e22.outlet_1,junction_746e22.outlet_1,,,
+distributor_d12051,Distributor,Right,inlet,Right Distributor Inlet,Distributor.distributor_d12051.inlet,distributor_d12051.inlet,,,
+distributor_d12051,Distributor,Right,outlet_1,Right Distributor Outlet 1,Distributor.distributor_d12051.outlet_1,distributor_d12051.outlet_1,,,
+distributor_d12051,Distributor,Right,outlet_2,Right Distributor Outlet 2,Distributor.distributor_d12051.outlet_2,distributor_d12051.outlet_2,,,
+distributor_d12051,Distributor,Right,outlet_3,Right Distributor Outlet 3,Distributor.distributor_d12051.outlet_3,distributor_d12051.outlet_3,,,
+distributor_d12051,Distributor,Right,outlet_4,Right Distributor Outlet 4,Distributor.distributor_d12051.outlet_4,distributor_d12051.outlet_4,,,
+distributor_d12051,Distributor,Right,outlet_5,Right Distributor Outlet 5,Distributor.distributor_d12051.outlet_5,distributor_d12051.outlet_5,,,
+distributor_d12051,Distributor,Right,outlet_6,Right Distributor Outlet 6,Distributor.distributor_d12051.outlet_6,distributor_d12051.outlet_6,,,
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_1,Right Evap Inlet 1,Evaporator.evaporator_3e6d38.inlet_circuit_1,evaporator_3e6d38.inlet_circuit_1,Right Coil Inlet ,52,26.572996568749996
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_2,Right Evap Inlet 2,Evaporator.evaporator_3e6d38.inlet_circuit_2,evaporator_3e6d38.inlet_circuit_2,,,
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_3,Right Evap Inlet 3,Evaporator.evaporator_3e6d38.inlet_circuit_3,evaporator_3e6d38.inlet_circuit_3,,,
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_4,Right Evap Inlet 4,Evaporator.evaporator_3e6d38.inlet_circuit_4,evaporator_3e6d38.inlet_circuit_4,,,
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_5,Right Evap Inlet 5,Evaporator.evaporator_3e6d38.inlet_circuit_5,evaporator_3e6d38.inlet_circuit_5,,,
+evaporator_3e6d38,Evaporator,Right,inlet_circuit_6,Right Evap Inlet 6,Evaporator.evaporator_3e6d38.inlet_circuit_6,evaporator_3e6d38.inlet_circuit_6,,,
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_1,Right Evap Outlet 1,Evaporator.evaporator_3e6d38.outlet_circuit_1,evaporator_3e6d38.outlet_circuit_1,Right Coil Outlet ,53,40.029072759722226
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_2,Right Evap Outlet 2,Evaporator.evaporator_3e6d38.outlet_circuit_2,evaporator_3e6d38.outlet_circuit_2,,,
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_3,Right Evap Outlet 3,Evaporator.evaporator_3e6d38.outlet_circuit_3,evaporator_3e6d38.outlet_circuit_3,,,
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_4,Right Evap Outlet 4,Evaporator.evaporator_3e6d38.outlet_circuit_4,evaporator_3e6d38.outlet_circuit_4,,,
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_5,Right Evap Outlet 5,Evaporator.evaporator_3e6d38.outlet_circuit_5,evaporator_3e6d38.outlet_circuit_5,,,
+evaporator_3e6d38,Evaporator,Right,outlet_circuit_6,Right Evap Outlet 6,Evaporator.evaporator_3e6d38.outlet_circuit_6,evaporator_3e6d38.outlet_circuit_6,,,
+sensorbulb_c3a80d,SensorBulb,Left,measurement,Sensor Bulb Left Measurement,SensorBulb.sensorbulb_c3a80d.measurement,sensorbulb_c3a80d.measurement,Left TXV Bulb,34,46.379493463888885
+sensorbulb_aece27,SensorBulb,Center,measurement,Sensor Bulb Center Measurement,SensorBulb.sensorbulb_aece27.measurement,sensorbulb_aece27.measurement,CTR TXV Bulb,46,42.20841668055555
+sensorbulb_3c8d8a,SensorBulb,Right,measurement,Sensor Bulb Right Measurement,SensorBulb.sensorbulb_3c8d8a.measurement,sensorbulb_3c8d8a.measurement,,,
+fan_f924ec,Fan,LH,sensor_1,LH sensor_1,Fan.fan_f924ec.sensor_1,fan_f924ec.sensor_1,Air in left evap 6 in RE,55,45.04021143263889
+fan_f924ec,Fan,LH,sensor_2,LH sensor_2,Fan.fan_f924ec.sensor_2,fan_f924ec.sensor_2,,,
+fan_21a33b,Fan,CTR,sensor_1,CTR sensor_1,Fan.fan_21a33b.sensor_1,fan_21a33b.sensor_1,Air in ctr evap 6 in RE,57,45.52934151597222
+fan_21a33b,Fan,CTR,sensor_2,CTR sensor_2,Fan.fan_21a33b.sensor_2,fan_21a33b.sensor_2,,,
+fan_0fc456,Fan,RH,sensor_1,RH sensor_1,Fan.fan_0fc456.sensor_1,fan_0fc456.sensor_1,Air in right evap 6 in RE,60,44.05265212013889
+fan_0fc456,Fan,RH,sensor_2,RH sensor_2,Fan.fan_0fc456.sensor_2,fan_0fc456.sensor_2,,,
+fan_097a50,Fan,LH,sensor_1,LH sensor_1,Fan.fan_097a50.sensor_1,fan_097a50.sensor_1,Air off right evap 6 in LE,65,31.784493724999997
+fan_097a50,Fan,LH,sensor_2,LH sensor_2,Fan.fan_097a50.sensor_2,fan_097a50.sensor_2,,,
+fan_2ea07b,Fan,CTR,sensor_1,CTR sensor_1,Fan.fan_2ea07b.sensor_1,fan_2ea07b.sensor_1,Air off ctr evap 6 in RE,64,30.97141504097222
+fan_2ea07b,Fan,CTR,sensor_2,CTR sensor_2,Fan.fan_2ea07b.sensor_2,fan_2ea07b.sensor_2,,,
+fan_6bb4dd,Fan,RH,sensor_1,RH sensor_1,Fan.fan_6bb4dd.sensor_1,fan_6bb4dd.sensor_1,Air off right evap 6 in RE,66,31.428249329861107
+fan_6bb4dd,Fan,RH,sensor_2,RH sensor_2,Fan.fan_6bb4dd.sensor_2,fan_6bb4dd.sensor_2,,,

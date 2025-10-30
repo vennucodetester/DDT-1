@@ -272,9 +272,25 @@ class PortItem(QGraphicsEllipseItem):
         port_name = self.port_name
         
         # Get a user-friendly description
-        from port_resolver import format_port_label
+        from port_resolver import format_port_label, resolve_mapped_sensor, get_sensor_value
         props = self.parent_component.component_data.get('properties', {})
         label = format_port_label(comp_type, props, port_name)
+        
+        # Resolve mapping and current value (if available)
+        mapped_sensor = None
+        current_value = None
+        try:
+            view_parent = self.parent_component.scene().views()[0].parent()
+            dm = getattr(view_parent, 'data_manager', None)
+            if dm is not None:
+                diagram_model = dm.diagram_model
+                comp_id = getattr(self.parent_component, 'component_id', '')
+                mapped_sensor = resolve_mapped_sensor(diagram_model, comp_type, comp_id, port_name)
+                if mapped_sensor:
+                    current_value = get_sensor_value(dm, mapped_sensor)
+        except Exception:
+            mapped_sensor = None
+            current_value = None
         
         # Build tooltip based on port type
         if port_type == 'sensor':
@@ -302,7 +318,14 @@ class PortItem(QGraphicsEllipseItem):
                 tooltip_lines.append("📍 <b>Map to:</b> Temperature or pressure sensor")
             
             tooltip_lines.append("")
-            tooltip_lines.append("💡 <i>Click to map CSV column to this port</i>")
+            if mapped_sensor:
+                value_text = f"{current_value}" if current_value is not None else "(no data in filter)"
+                tooltip_lines.append(f"<b>Mapped CSV:</b> {mapped_sensor}")
+                tooltip_lines.append(f"<b>Current Value:</b> {value_text}")
+            else:
+                tooltip_lines.append("<span style='color:#c0392b'><b>Unmapped</b></span>")
+            tooltip_lines.append("")
+            tooltip_lines.append("<i>Click to map CSV column to this port</i>")
             
         elif port_type == 'in':
             # Inlet ports - can be used for temperature sensors

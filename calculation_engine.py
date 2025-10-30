@@ -753,13 +753,16 @@ def calculate_row_performance(
         t_3a_f = get_val('T_3a')  # Compressor outlet
         t_3b_f = get_val('T_3b')  # Condenser inlet
         t_4a_f = get_val('T_4a')  # Condenser outlet
-        # Condenser water temps (optional)
+        # Condenser water temps: support both legacy ('Cond.water.*') and Excel names ('T_water*')
         t_water_out_f = get_val('Cond.water.out')
         t_water_in_f = get_val('Cond.water.in')
-
-        # Condenser water temps (MISSING IN OLD CODE)
-        t_waterin_f = get_val('T_waterin')  # Condenser water inlet
-        t_waterout_f = get_val('T_waterout')  # Condenser water outlet
+        t_waterin_f = get_val('T_waterin')
+        t_waterout_f = get_val('T_waterout')
+        # Prefer Excel names; if missing, fall back to legacy keys
+        if t_waterin_f is None:
+            t_waterin_f = t_water_in_f
+        if t_waterout_f is None:
+            t_waterout_f = t_water_out_f
 
         # Validate critical pressure values
         if p_suc_psig is None or p_disch_psig is None:
@@ -883,7 +886,7 @@ def calculate_row_performance(
             results['T_sat.cond'] = (t_sat_disch_k - 273.15) * 9/5 + 32
             results['S.C'] = subcool_cond * 9/5
 
-        # Water temps (MISSING IN OLD CODE)
+        # Water temps
         if t_waterin_f is not None:
             results['T_waterin'] = t_waterin_f
         if t_waterout_f is not None:

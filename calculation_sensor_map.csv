@@ -1,0 +1,22 @@
+﻿role_key,csv_column
+Cond.water.in,Water in HeatX
+Cond.water.out,Water out HeatX
+P_disch,Liquid Pressure 
+P_suc,Suction Presure 
+RPM,Compressor RPM
+T_1a-ctr,CTR Coil Inlet 
+T_1a-lh,Left Coil Inlet 1
+T_1a-rh,Right Coil Inlet 
+T_1b-ctr,CTR Coil Inlet 
+T_1b-lh,Left Coil Inlet 1
+T_1c-rh,Right Coil Inlet 
+T_2a-LH,Left Coil Outlet 1
+T_2a-RH,Right Coil Outlet 
+T_2a-ctr,CTR Coil Outlet 
+T_2b,Suction line into Comp
+T_3a,Discharge line from comp
+T_3b,Ref Temp in HeatX
+T_4a,Ref Temp out HeatX
+T_4b-ctr,CTR TXV Inlet
+T_4b-lh,Left TXV Inlet
+T_4b-rh,Right TXV Inlet 
