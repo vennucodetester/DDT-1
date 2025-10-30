@@ -569,6 +569,12 @@ def run_batch_processing(
     diagram_model = data_manager.diagram_model
     sensor_map = {}
 
+    # VERSION MARKER - If you see this, the new code is running!
+    print("[BATCH PROCESSING] ========================================")
+    print("[BATCH PROCESSING] CODE VERSION: 2025-10-30-FIX-v3")
+    print("[BATCH PROCESSING] Duplicate prevention logic: ACTIVE")
+    print("[BATCH PROCESSING] ========================================")
+
     # CRITICAL: Validate against actual input columns to avoid ghost/adjacent values
     # Create set for fast lookup and ensure we're using exact column names
     input_columns = set(input_dataframe.columns.tolist() if input_dataframe is not None else [])
@@ -580,8 +586,17 @@ def run_batch_processing(
 
     for key, role_defs in REQUIRED_SENSOR_ROLES.items():
         found = False
+
+        # DEBUG: Log T_1b roles to verify correct configuration
+        if 'T_1b' in key or 'T_1c' in key:
+            print(f"[BATCH PROCESSING] DEBUG: Processing {key} with {len(role_defs)} role definitions")
+
         for role_def in role_defs:
             sensor_name = _find_sensor_for_role(diagram_model, role_def)
+
+            # DEBUG: Log what sensor T_1b resolves to
+            if ('T_1b' in key or 'T_1c' in key) and sensor_name:
+                print(f"[BATCH PROCESSING] DEBUG: {key} resolved to sensor '{sensor_name}' via {role_def}")
 
             # CRITICAL: Triple validation to prevent any possibility of ghost values
             if sensor_name:
