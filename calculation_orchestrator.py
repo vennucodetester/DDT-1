@@ -552,6 +552,43 @@ def run_batch_processing(
     print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} mappings")
     print(f"[BATCH PROCESSING] Sensor map: {sensor_map}")
 
+    # === STEP 3.5: VALIDATE SENSOR MAP (CRITICAL FIX FOR DATA-MAPPING BUG) ===
+    # Verify that all sensor_map values are actual DataFrame columns
+    # This catches the bug where reconciliation preserves invalid sensor names
+    available_columns = set(input_dataframe.columns)
+    invalid_mappings = {}
+    validated_sensor_map = {}
+
+    print(f"[BATCH PROCESSING] Validating sensor map against DataFrame columns...")
+    print(f"[BATCH PROCESSING] Available DataFrame columns: {list(available_columns)[:10]}...")  # Show first 10
+
+    for role_key, sensor_name in sensor_map.items():
+        if sensor_name in available_columns:
+            # Valid mapping - sensor name exists as DataFrame column
+            validated_sensor_map[role_key] = sensor_name
+            print(f"[BATCH PROCESSING] ✓ Valid: {role_key} -> '{sensor_name}'")
+        else:
+            # Invalid mapping - sensor name NOT in DataFrame
+            print(f"[BATCH PROCESSING] ✗ INVALID: {role_key} -> '{sensor_name}' (column not found in DataFrame)")
+            invalid_mappings[role_key] = sensor_name
+
+    # Report validation results
+    if invalid_mappings:
+        print(f"\n[BATCH PROCESSING] ⚠️  CRITICAL ERROR: {len(invalid_mappings)} sensor mappings are invalid!")
+        print(f"[BATCH PROCESSING] These sensors are mapped to names that don't exist in the CSV:")
+        for role_key, bad_name in invalid_mappings.items():
+            print(f"[BATCH PROCESSING]   - {role_key}: '{bad_name}' ← NOT FOUND")
+        print(f"\n[BATCH PROCESSING] This usually happens when:")
+        print(f"[BATCH PROCESSING]   1. A session file was loaded with different CSV column names")
+        print(f"[BATCH PROCESSING]   2. The CSV column names changed but sensors weren't remapped")
+        print(f"[BATCH PROCESSING] Solution: Remap these sensors in the Diagram tab")
+        print(f"\n[BATCH PROCESSING] Proceeding with {len(validated_sensor_map)} valid mappings...")
+    else:
+        print(f"[BATCH PROCESSING] ✓ All {len(validated_sensor_map)} sensor mappings are valid!")
+
+    # Use the validated map
+    sensor_map = validated_sensor_map
+
     # === STEP 4: RUN STEP 2 (ROW-BY-ROW PROCESSING) ===
     print(f"[BATCH PROCESSING] Starting row-by-row calculation...")
 

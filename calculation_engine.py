@@ -721,6 +721,12 @@ def calculate_row_performance(
         def get_val(key):
             col_name = sensor_map.get(key)
             if col_name is None:
+                # Sensor role not mapped
+                return None
+            # CRITICAL FIX: Check if column actually exists in row
+            if col_name not in row.index:
+                # Column name is in sensor_map but not in DataFrame
+                # This indicates a data-mapping failure
                 return None
             return row.get(col_name)
 

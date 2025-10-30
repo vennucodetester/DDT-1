@@ -223,6 +223,8 @@ class DataManager(QObject):
             # Update sensor_roles dict to use new CSV sensor names
             roles = self.diagram_model.get('sensor_roles', {})
             updated_roles = {}
+            orphaned_roles = {}  # Track roles that need remapping
+
             for role_key, old_sensor_name in roles.items():
                 if old_sensor_name in user_mappings:
                     # Remap to new CSV name
@@ -231,13 +233,28 @@ class DataManager(QObject):
                 elif old_sensor_name in matched:
                     # Keep matched sensors (identical names)
                     updated_roles[role_key] = old_sensor_name
-                else:
-                    # Sensor was not matched - PRESERVE the original mapping
-                    # (it may exist in the CSV under a different header)
+                elif old_sensor_name in new_sensor_list:
+                    # Sensor name exists in new CSV - keep it
                     updated_roles[role_key] = old_sensor_name
-                    print(f"[RECONCILE] PRESERVED unmapped {role_key}: {old_sensor_name} (assuming different column name)")
+                    print(f"[RECONCILE] Kept {role_key}: {old_sensor_name} (found in new CSV)")
+                else:
+                    # CRITICAL FIX: Don't preserve invalid mappings!
+                    # This sensor name doesn't exist in the new CSV
+                    # Mark it as orphaned so calculations won't fail with NaN
+                    orphaned_roles[role_key] = old_sensor_name
+                    print(f"[RECONCILE] ⚠️  ORPHANED {role_key}: '{old_sensor_name}' NOT FOUND in new CSV")
+                    print(f"[RECONCILE]     This sensor mapping will be REMOVED (must be remapped manually)")
+
             self.diagram_model['sensor_roles'] = updated_roles
-            print(f"[RECONCILE] Updated sensor_roles: {len(roles)} -> {len(updated_roles)} mappings (all preserved)")
+
+            if orphaned_roles:
+                print(f"\n[RECONCILE] ⚠️  WARNING: {len(orphaned_roles)} sensor mappings were REMOVED:")
+                for role_key, bad_name in orphaned_roles.items():
+                    print(f"[RECONCILE]   - {role_key}: '{bad_name}' (column not in CSV)")
+                print(f"[RECONCILE] Please remap these sensors in the Diagram tab")
+                print(f"[RECONCILE] Updated sensor_roles: {len(roles)} -> {len(updated_roles)} mappings ({len(orphaned_roles)} removed)")
+            else:
+                print(f"[RECONCILE] Updated sensor_roles: {len(roles)} -> {len(updated_roles)} mappings (all valid)")
             
             # Update sensor_groups to use new CSV sensor names
             updated_groups = {}
