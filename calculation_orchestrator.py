@@ -410,24 +410,41 @@ REQUIRED_SENSOR_ROLES = {
     'T_waterin': [('Condenser', 'water_inlet')],
     'T_waterout': [('Condenser', 'water_outlet')],
 
-    # LH circuit (ADDED T_1a-lh, T_1b-lh - were missing)
-    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],
-    'T_1b-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],  # FIXED: was 'coil_inlet_1'
+    # LH circuit
+    # CRITICAL: T_1a and T_1b represent DIFFERENT physical points
+    # T_1a = TXV outlet / Distributor outlet
+    # T_1b = Coil inlet (after distributor circuits split)
+    # If only one inlet sensor exists, prefer T_1a (primary measurement point)
+    'T_1a-lh': [
+        ('Distributor', 'outlet_1', {'circuit_label': 'Left'}),  # Prefer distributor outlet if available
+        ('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})  # Fallback to evaporator inlet
+    ],
+    'T_1b-lh': [
+        ('Evaporator', 'inlet_circuit_2', {'circuit_label': 'Left'}),  # Try different circuit inlet
+        # DO NOT map to inlet_circuit_1 - would cause duplicate with T_1a-lh
+    ],
     'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
     'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
 
-    # CTR circuit (ADDED T_1a-ctr, T_1b-ctr - were missing)
-    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],
-    'T_1b-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],  # FIXED: was 'coil_inlet_1'
+    # CTR circuit
+    'T_1a-ctr': [
+        ('Distributor', 'outlet_1', {'circuit_label': 'Center'}),
+        ('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})
+    ],
+    'T_1b-ctr': [
+        ('Evaporator', 'inlet_circuit_2', {'circuit_label': 'Center'}),
+    ],
     'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
     'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
 
-    # RH circuit (ADDED T_1a-rh, T_1c-rh - were missing)
-    # FIXED: T_1c now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],
-    'T_1c-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],  # FIXED: was 'coil_inlet_1'
+    # RH circuit
+    'T_1a-rh': [
+        ('Distributor', 'outlet_1', {'circuit_label': 'Right'}),
+        ('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})
+    ],
+    'T_1c-rh': [
+        ('Evaporator', 'inlet_circuit_2', {'circuit_label': 'Right'}),
+    ],
     'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
     'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
 
@@ -559,6 +576,8 @@ def run_batch_processing(
     print(f"[BATCH PROCESSING] Available DataFrame columns ({len(input_columns)}): {sorted(input_columns)[:10]}{'...' if len(input_columns) > 10 else ''}")
 
     unmapped_roles = []
+    duplicate_prevention = {}  # Track which sensor is mapped to which role to prevent duplicates
+
     for key, role_defs in REQUIRED_SENSOR_ROLES.items():
         found = False
         for role_def in role_defs:
@@ -569,9 +588,22 @@ def run_batch_processing(
                 # Check 1: Sensor name is not None
                 if sensor_name in input_columns:
                     # Check 2: Column actually exists in DataFrame
-                    # Check 3: No duplicate mappings (each sensor should map to unique role)
+
+                    # Check 3: PREVENT DUPLICATE MAPPINGS - critical fix for ghost values!
+                    # Multiple roles should NEVER map to the same sensor column
+                    if sensor_name in duplicate_prevention:
+                        existing_role = duplicate_prevention[sensor_name]
+                        print(f"[BATCH PROCESSING] CRITICAL: Skipping duplicate mapping!")
+                        print(f"                   Role '{key}' wants sensor '{sensor_name}'")
+                        print(f"                   But '{existing_role}' already claimed it")
+                        print(f"                   → '{key}' will show as unmapped (prevents ghost values)")
+                        # Continue to next role_def to try fallback options
+                        continue
+
+                    # Check 4: This role hasn't been mapped yet
                     if key not in sensor_map:
                         sensor_map[key] = sensor_name
+                        duplicate_prevention[sensor_name] = key  # Mark this sensor as claimed
                         found = True
                         break  # Found valid mapping
                     else:
