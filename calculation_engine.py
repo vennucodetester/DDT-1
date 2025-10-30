@@ -692,7 +692,8 @@ def calculate_row_performance(
     sensor_map: Dict[str, str],
     eta_vol: float,
     comp_specs: Dict,
-    refrigerant: str = 'R290'
+    refrigerant: str = 'R290',
+    data_manager=None  # NEW: For column name resolution
 ) -> pd.Series:
     """
     Performs the "Step 2" calculation from Calculations-DDT.txt
@@ -703,10 +704,11 @@ def calculate_row_performance(
 
     Args:
         row: Single row from DataFrame (pandas Series)
-        sensor_map: Dict mapping internal role keys to CSV column names
+        sensor_map: Dict mapping internal role keys to sensor names
         eta_vol: Volumetric efficiency from Step 1
         comp_specs: Dict with 'displacement_m3' key
         refrigerant: Refrigerant name (default 'R290')
+        data_manager: DataManager instance for resolving sensor names to column names
 
     Returns:
         pandas Series with all 54 calculated values PLUS P-h diagram columns
@@ -717,18 +719,35 @@ def calculate_row_performance(
     results = {}
 
     try:
-        # Helper function to safely get values from the row
+        # CRITICAL FIX: Helper function with 3-part translation
+        # Step 1: key (role like 'P_suc')
+        # Step 2: sensor_name (could be logical port or sensor name)
+        # Step 3: actual_column (CSV column name)
         def get_val(key):
-            col_name = sensor_map.get(key)
-            if col_name is None:
-                # Sensor role not mapped
+            sensor_name = sensor_map.get(key)
+            if sensor_name is None:
+                # Sensor role not mapped at all
                 return None
-            # CRITICAL FIX: Check if column actually exists in row
-            if col_name not in row.index:
-                # Column name is in sensor_map but not in DataFrame
-                # This indicates a data-mapping failure
-                return None
-            return row.get(col_name)
+
+            # Check if sensor_name is directly a DataFrame column
+            if sensor_name in row.index:
+                # Direct match - sensor_name IS the column name
+                return row.get(sensor_name)
+
+            # CRITICAL FIX: sensor_name might be a logical reference that needs resolution
+            # Try to resolve it through data_manager if available
+            if data_manager:
+                try:
+                    # Use data_manager's get_sensor_value which handles the resolution
+                    # This will look up sensor_name in the sensor list and return the value
+                    value = data_manager.get_sensor_value(sensor_name)
+                    if value is not None:
+                        return value
+                except Exception:
+                    pass
+
+            # Column not found after all attempts
+            return None
 
         # ===== 1. GET ALL SENSOR VALUES (INCLUDING 8 MISSING ONES) =====
         # Pressures
