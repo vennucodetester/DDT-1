@@ -423,10 +423,32 @@ class CalculationsWidget(QWidget):
                 return
 
             # 4. Store and display results
-            # Force a stable schema: include ALL expected columns and fill missing with NaN
-            # This prevents adjacent/shifted values when some sensors are unmapped
+            # CRITICAL FIX: Force a stable schema to prevent adjacent/shifted values
+            # This ensures ALL expected columns exist, filling missing ones with NaN
             expected_cols = list(self.header.data_keys)
+
+            print(f"[CALCULATIONS] Expected columns: {len(expected_cols)}")
+            print(f"[CALCULATIONS] Returned columns: {len(processed_df.columns)}")
+
+            # Check for any unexpected columns that might indicate a problem
+            returned_cols = set(processed_df.columns)
+            expected_cols_set = set(expected_cols)
+            unexpected_cols = returned_cols - expected_cols_set
+            if unexpected_cols:
+                print(f"[CALCULATIONS] WARNING: Unexpected columns in results: {unexpected_cols}")
+
+            # Reindex to enforce exact column order and add missing columns as NaN
             processed_df = processed_df.reindex(columns=expected_cols)
+
+            # Explicit verification: Check that unmapped columns are truly NaN
+            for col in expected_cols:
+                if col not in returned_cols:
+                    # This column was not in the results, so should be all NaN after reindex
+                    if not processed_df[col].isna().all():
+                        print(f"[CALCULATIONS] ERROR: Column '{col}' should be NaN but has values!")
+                        # Force it to NaN to prevent ghost values
+                        processed_df[col] = pd.NA
+
             self.processed_df = processed_df
             self.populate_tree(processed_df)
 

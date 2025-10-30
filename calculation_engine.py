@@ -718,11 +718,29 @@ def calculate_row_performance(
 
     try:
         # Helper function to safely get values from the row
+        # CRITICAL: Must validate that column exists to prevent ghost/duplicate values
         def get_val(key):
             col_name = sensor_map.get(key)
             if col_name is None:
+                # Role not mapped at all
                 return None
-            return row.get(col_name)
+
+            # CRITICAL FIX: Validate column exists in row before accessing
+            # This prevents pandas from returning unexpected values or falling back to adjacent columns
+            if col_name not in row.index:
+                # Column mapped but doesn't exist in this row's DataFrame
+                # This should never happen if validation in orchestrator is working correctly
+                print(f"WARNING: Column '{col_name}' for role '{key}' not found in DataFrame row")
+                return None
+
+            # Get the value - guaranteed to exist now
+            val = row[col_name]
+
+            # Additional safety: Check for unexpected NaN values from pandas operations
+            if pd.isna(val):
+                return None
+
+            return val
 
         # ===== 1. GET ALL SENSOR VALUES (INCLUDING 8 MISSING ONES) =====
         # Pressures

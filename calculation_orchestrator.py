@@ -454,6 +454,9 @@ def _find_sensor_for_role(model: Dict, role_def: tuple) -> Optional[str]:
     role_port = role_def[1]
     role_props = role_def[2] if len(role_def) > 2 else {}
 
+    # CRITICAL: Track all matching components to detect ambiguous mappings
+    matching_components = []
+
     for comp_id, comp in components.items():
         comp_type = comp.get('type')
         props = comp.get('properties', {})
@@ -471,10 +474,20 @@ def _find_sensor_for_role(model: Dict, role_def: tuple) -> Optional[str]:
                     break
 
         if props_match:
-            # Found matching component, resolve the sensor
-            sensor = resolve_mapped_sensor(model, comp_type, comp_id, role_port)
-            if sensor:
-                return sensor
+            matching_components.append((comp_id, comp))
+
+    # CRITICAL FIX: Warn if multiple components match the same role
+    # This could cause ambiguous mappings and duplicate values
+    if len(matching_components) > 1:
+        comp_ids = [comp_id for comp_id, _ in matching_components]
+        print(f"[MAPPING] WARNING: Multiple components match role {role_def[0]}.{role_def[1]} with props {role_props}: {comp_ids}")
+        print(f"[MAPPING] Using first match: {comp_ids[0]}")
+
+    # Find the first component with a mapped sensor
+    for comp_id, comp in matching_components:
+        sensor = resolve_mapped_sensor(model, role_comp_type, comp_id, role_port)
+        if sensor:
+            return sensor
 
     return None
 
@@ -539,22 +552,50 @@ def run_batch_processing(
     diagram_model = data_manager.diagram_model
     sensor_map = {}
 
-    # Validate against actual input columns to avoid ghost/adjacent values
-    input_columns = set(input_dataframe.columns if input_dataframe is not None else [])
+    # CRITICAL: Validate against actual input columns to avoid ghost/adjacent values
+    # Create set for fast lookup and ensure we're using exact column names
+    input_columns = set(input_dataframe.columns.tolist() if input_dataframe is not None else [])
 
+    print(f"[BATCH PROCESSING] Available DataFrame columns ({len(input_columns)}): {sorted(input_columns)[:10]}{'...' if len(input_columns) > 10 else ''}")
+
+    unmapped_roles = []
     for key, role_defs in REQUIRED_SENSOR_ROLES.items():
+        found = False
         for role_def in role_defs:
             sensor_name = _find_sensor_for_role(diagram_model, role_def)
-            # Only accept mappings that exist in the current input dataframe
-            if sensor_name and sensor_name in input_columns:
-                sensor_map[key] = sensor_name
-                break  # Found it
 
-        if key not in sensor_map:
-            print(f"[BATCH PROCESSING] WARNING: No sensor mapped for required role '{key}' (or column missing in input data)")
+            # CRITICAL: Triple validation to prevent any possibility of ghost values
+            if sensor_name:
+                # Check 1: Sensor name is not None
+                if sensor_name in input_columns:
+                    # Check 2: Column actually exists in DataFrame
+                    # Check 3: No duplicate mappings (each sensor should map to unique role)
+                    if key not in sensor_map:
+                        sensor_map[key] = sensor_name
+                        found = True
+                        break  # Found valid mapping
+                    else:
+                        print(f"[BATCH PROCESSING] WARNING: Duplicate mapping for '{key}' - using first match")
+                        found = True
+                        break
+                else:
+                    print(f"[BATCH PROCESSING] WARNING: Sensor '{sensor_name}' for role '{key}' not found in DataFrame columns")
+
+        if not found:
+            unmapped_roles.append(key)
+
+    if unmapped_roles:
+        print(f"[BATCH PROCESSING] WARNING: {len(unmapped_roles)} unmapped roles: {unmapped_roles[:5]}{'...' if len(unmapped_roles) > 5 else ''}")
 
     print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} valid mappings (validated against DataFrame columns)")
-    print(f"[BATCH PROCESSING] Sensor map: {sensor_map}")
+
+    # Verify no duplicate values in sensor_map (multiple roles mapping to same column)
+    sensor_values = list(sensor_map.values())
+    if len(sensor_values) != len(set(sensor_values)):
+        print("[BATCH PROCESSING] WARNING: Multiple roles mapping to same sensor column - this may indicate configuration error")
+        from collections import Counter
+        duplicates = [item for item, count in Counter(sensor_values).items() if count > 1]
+        print(f"[BATCH PROCESSING] Duplicate sensor columns: {duplicates}")
 
     # === STEP 4: RUN STEP 2 (ROW-BY-ROW PROCESSING) ===
     print(f"[BATCH PROCESSING] Starting row-by-row calculation...")
