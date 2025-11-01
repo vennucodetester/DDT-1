@@ -166,16 +166,9 @@ class PhDiagramInteractiveWidget(QWidget):
             # Generate saturation data
             self.sat_data = self.generator.generate_saturation_data()
             
-            # Extract cycle data
-            self.cycle_data = self.generator.extract_cycle_data(filtered_df)
-            
-            if self.cycle_data is None:
-                self.status_label.setText("⚠️ Unable to extract cycle data from filtered DataFrame.")
-                self.status_label.setStyleSheet("color: orange;")
-                return
-            
-            # Get cycle paths
-            self.cycle_paths = self.generator.get_cycle_paths(self.cycle_data)
+            # Rebuilt workflow: compute averaged points and module paths
+            self.avg_points = self.generator.build_averaged_points(filtered_df)
+            self.module_paths = self.generator.get_paths_from_points(self.avg_points)
             
             self.status_label.setText("✓ Data loaded successfully. Rendering diagram...")
             self.status_label.setStyleSheet("color: green;")
@@ -192,7 +185,7 @@ class PhDiagramInteractiveWidget(QWidget):
     
     def on_options_changed(self):
         """Handle changes to display options and redraw diagram."""
-        if self.sat_data is None or self.cycle_data is None:
+        if self.sat_data is None or self.avg_points is None or self.module_paths is None:
             self.status_label.setText("❌ No data loaded.")
             self.status_label.setStyleSheet("color: red;")
             return
@@ -224,19 +217,8 @@ class PhDiagramInteractiveWidget(QWidget):
             ax.plot(h_vapor, pressures, 'k-', linewidth=2.5, label='Saturated vapor (Q=1)')
             
             # ==================== Plot Cycle Paths ====================
-            common = self.cycle_data['common_points']
-            circuits = self.cycle_data['circuit_points']
-            
-            # Plot Common Compression Line FIRST (2b -> 3a)
-            # This is the ONLY compression line - one compressor for all circuits
-            any_circuit_visible = show_lh or show_ctr or show_rh
-            if any_circuit_visible and '2b' in common and '3a' in common:
-                h_comp = [common['2b']['h'], common['3a']['h']]
-                p_comp = [common['2b']['P'], common['3a']['P']]
-                ax.plot(h_comp, p_comp, '-', color='#111827', linewidth=4, 
-                       label='Compression (2b→3a)', zorder=6, alpha=0.9)
-            
-            # Plot each circuit's specific path (NOT including compression)
+            # Use new averaged paths workflow
+            # Plot each module's averaged polyline
             circuit_list = []
             if show_lh:
                 circuit_list.append(('LH', '#3b82f6'))
@@ -244,32 +226,37 @@ class PhDiagramInteractiveWidget(QWidget):
                 circuit_list.append(('CTR', '#16a34a'))
             if show_rh:
                 circuit_list.append(('RH', '#a855f7'))
-            
+
+            import logging
+            logger = logging.getLogger(__name__)
             for circuit_name, color in circuit_list:
-                # Cycle path
-                cycle_path = self.cycle_paths[f'{circuit_name}_cycle']
-                if len(cycle_path) > 1:
-                    h_cycle = [pt['h'] for pt in cycle_path]
-                    p_cycle = [pt['P'] for pt in cycle_path]
-                    
-                    # Fill cycle area
-                    ax.fill(h_cycle, p_cycle, color=color, alpha=0.08)
-                    
-                    # Draw cycle line with module label
-                    module_name = f'{circuit_name} Module'
-                    ax.plot(h_cycle, p_cycle, '-', color=color, linewidth=2.5, 
-                           label=module_name, zorder=4)
-                
-                # Mixing line (dashed)
-                mix_path = self.cycle_paths[f'{circuit_name}_mix']
-                if len(mix_path) == 2:
-                    h_mix = [pt['h'] for pt in mix_path]
-                    p_mix = [pt['P'] for pt in mix_path]
-                    ax.plot(h_mix, p_mix, '--', color=color, linewidth=2, 
-                           alpha=0.7, zorder=3)
+                path = self.module_paths.get(circuit_name, [])
+                if len(path) >= 2:
+                    h_path = [pt['h'] for pt in path]
+                    p_path = [pt['P'] for pt in path]
+                    ax.plot(h_path, p_path, '-', color=color, linewidth=2.5,
+                            label=f'{circuit_name} Module', zorder=4)
+                    logger.info(f"[PH AVG] Path.{circuit_name} plotted -> {list(zip([round(x,3) for x in h_path],[round(y,3) for y in p_path]))}")
+
+            # Compression path (2b -> 3b), shown as dashed dark line
+            comp_path = self.module_paths.get('compression', [])
+            if len(comp_path) == 2:
+                ax.plot([comp_path[0]['h'], comp_path[1]['h']],
+                        [comp_path[0]['P'], comp_path[1]['P']],
+                        '--', color='#374151', linewidth=2.0, label='Compression (2b→3b)', zorder=3)
+                logger.info(f"[PH AVG] Path.Compression plotted -> [(x={comp_path[0]['h']:.3f}, y={comp_path[0]['P']:.3f}), (x={comp_path[1]['h']:.3f}, y={comp_path[1]['P']:.3f})]")
             
             # ==================== Plot State Points ====================
-            all_points = self.generator.get_all_points(self.cycle_data)
+            # For labeling, flatten module points
+            all_points = []
+            for circuit_name, color in [('LH','#3b82f6'),('CTR','#16a34a'),('RH','#a855f7')]:
+                if ((circuit_name=='LH' and show_lh) or
+                    (circuit_name=='CTR' and show_ctr) or
+                    (circuit_name=='RH' and show_rh)):
+                    for key in ['T3b','T4b','T1b','T2b']:
+                        pt = self.avg_points.get(circuit_name, {}).get(key)
+                        if pt and not (np.isnan(pt['h']) or np.isnan(pt['P'])):
+                            all_points.append({'id': f'{key}_{circuit_name}', 'h': pt['h'], 'P': pt['P'], 'desc': key, 'color': color})
             
             # Debug: Print all point IDs to understand structure (can be removed later)
             # print("\n[DEBUG] All point IDs in data:")
@@ -298,11 +285,7 @@ class PhDiagramInteractiveWidget(QWidget):
                 elif '_RH' in point_id and show_rh:
                     should_show = True
                 elif '_' not in point_id:
-                    # Common points (2b, 3a, 3b, 4a) - show if any circuit is visible
-                    # Hide intermediate points 3b and 4a to reduce clutter
-                    # Show only corner points: 2b (evap outlet/mixing), 3a (comp outlet)
-                    if point_id not in ['3b', '4a']:
-                        should_show = show_lh or show_ctr or show_rh
+                    pass
                 
                 if should_show:
                     ax.plot(point['h'], point['P'], 'o', color=point['color'], 
@@ -326,7 +309,7 @@ class PhDiagramInteractiveWidget(QWidget):
                     elif base_id == '4b' and '4' not in corner_positions:
                         corner_positions['4'] = (point['h'], point['P'])
             
-            # Add labels after all points are plotted - ONE label per corner only
+            # Add labels after all points are plotted - label the four keys once per module
             if show_labels and corner_positions:
                 for corner_num, (h, P) in corner_positions.items():
                     label_text = corner_labels.get(corner_num, corner_num)

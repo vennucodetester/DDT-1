@@ -1,20 +1,40 @@
 import sys
+import argparse
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QTabWidget, QLabel, QFrame, QPushButton,
                              QFileDialog)
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtCore import Qt, QTimer
 
+# Initialize logging early, before other imports that might log
+from logging_setup import init_logging
+
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="HVAC System Analyzer")
+    parser.add_argument(
+        "--log",
+        type=str,
+        default=None,
+        help="Path to log file (default: logs/app_YYYYMMDD_HHMMSS.log)"
+    )
+    return parser.parse_args()
+
+
+# Parse args and initialize logging
+args = parse_args()
+log_file = init_logging(args.log)
+
 # Import our component classes
 from data_manager import DataManager
 from sensor_panel import SensorPanel
-from diagram_widget import DiagramWidget, PropertyEditor
+from diagram_widget import DiagramWidget
 from graph_widget import GraphWidget
 from comparison_widget import ComparisonWidget
 from mapping_dialog import MappingDialog
 from calculations_widget import CalculationsWidget
 from ph_diagram_interactive_widget import PhDiagramInteractiveWidget
-from PyQt6.QtWidgets import QDockWidget
 
 class MainWindow(QMainWindow):
     """The main application window, orchestrating all other components."""
@@ -36,17 +56,11 @@ class MainWindow(QMainWindow):
         # --- Instantiate UI Components ---
         self.sensor_panel = SensorPanel(self.data_manager)
         
-        # Create property editor first
-        self.property_editor = PropertyEditor(self.data_manager)
-        
         self.diagram_widget = DiagramWidget(self.data_manager)
         self.graph_widget = GraphWidget(self.data_manager)
         self.comparison_widget = ComparisonWidget(self.data_manager)
         self.calculations_widget = CalculationsWidget(self.data_manager)
         self.ph_diagram_interactive_widget = PhDiagramInteractiveWidget(self.data_manager)
-        
-        # Connect diagram widget to property editor
-        self.diagram_widget.property_editor = self.property_editor
 
         # --- Assemble Layout ---
         self.sensor_panel.setFixedWidth(350) 
@@ -54,12 +68,6 @@ class MainWindow(QMainWindow):
         
         right_panel = self.setup_tabs()
         main_layout.addWidget(right_panel)
-        
-        # Add Property Editor dock for diagram designer
-        self.property_editor_dock = QDockWidget("Component Properties", self)
-        self.property_editor_dock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea)
-        self.property_editor_dock.setWidget(self.property_editor)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.property_editor_dock)
         
         # --- Connect Signals and Slots ---
         self.connect_signals()

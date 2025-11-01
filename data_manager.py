@@ -47,6 +47,7 @@ class DataManager(QObject):
         self.time_range = 'All Data'  # Options: '1 Hour', '3 Hours', '8 Hours', '16 Hours', 'All Data', 'Custom'
         self.value_aggregation = 'Average'  # Options: 'Average', 'Maximum', 'Minimum'
         self.custom_time_range = None  # Stores custom time range as {'start': timestamp, 'end': timestamp}
+        self.custom_time_ranges = None  # Stores multi-range filter: {'keep': [(start, end), ...], 'delete': [(start, end), ...]}
 
         # Calculation settings
         self.refrigerant = 'R290'  # Changed from R410A to R290 (Propane) per plan.txt
@@ -585,6 +586,31 @@ class DataManager(QObject):
         print(f"  End: {self.custom_time_range['end']}")
         print(f"  Duration: {self.custom_time_range['end'] - self.custom_time_range['start']}")
         
+        # Also clear multi-range when setting single range (backward compatibility)
+        self.custom_time_ranges = None
+        
+        self.data_changed.emit()
+    
+    def set_multi_range_filter(self, keep_ranges, delete_ranges):
+        """Sets multiple time ranges for keep/delete filtering."""
+        # Store ranges as list of tuples: [(start_dt, end_dt), ...]
+        self.custom_time_ranges = {
+            'keep': keep_ranges,
+            'delete': delete_ranges
+        }
+        self.time_range = 'Custom'
+        
+        # Clear single-range filter when using multi-range
+        self.custom_time_range = None
+        
+        print(f"[SET_MULTI_RANGE] Stored multi-range filter:")
+        print(f"  Keep ranges: {len(keep_ranges)}")
+        for i, (start, end) in enumerate(keep_ranges):
+            print(f"    Keep {i+1}: {start} to {end}")
+        print(f"  Delete ranges: {len(delete_ranges)}")
+        for i, (start, end) in enumerate(delete_ranges):
+            print(f"    Delete {i+1}: {start} to {end}")
+        
         self.data_changed.emit()
     
     def get_custom_time_range(self):
@@ -732,9 +758,54 @@ class DataManager(QObject):
             print(f"[FILTERED_DATA] Returning all data ({len(self.csv_data)} rows)")
             return self.csv_data.copy()  # FIXED: Return copy instead of reference
         
-        # If "Custom" is selected, use custom time range if available
+        # If "Custom" is selected, use custom time range(s) if available
         if self.time_range == 'Custom':
             print(f"[FILTERED_DATA] Custom time range selected")
+            
+            # Check for multi-range filter first
+            if self.custom_time_ranges and 'Timestamp' in self.csv_data.columns:
+                try:
+                    df = self.csv_data.copy()
+                    
+                    if not is_datetime64_any_dtype(df['Timestamp']):
+                        df['Timestamp'] = pd.to_datetime(df['Timestamp'], errors='coerce')
+                    
+                    # Start with all data
+                    filtered_mask = pd.Series([False] * len(df), index=df.index)
+                    
+                    # Apply keep ranges (union - include data in ANY keep range)
+                    keep_ranges = self.custom_time_ranges.get('keep', [])
+                    if keep_ranges:
+                        keep_mask = pd.Series([False] * len(df), index=df.index)
+                        for start_time, end_time in keep_ranges:
+                            start_dt = pd.to_datetime(start_time)
+                            end_dt = pd.to_datetime(end_time)
+                            keep_mask |= (df['Timestamp'] >= start_dt) & (df['Timestamp'] <= end_dt)
+                        filtered_mask = keep_mask
+                        print(f"[FILTERED_DATA] Applied {len(keep_ranges)} keep ranges: {filtered_mask.sum()} rows")
+                    else:
+                        # If no keep ranges, start with all data
+                        filtered_mask = pd.Series([True] * len(df), index=df.index)
+                        print(f"[FILTERED_DATA] No keep ranges, starting with all data")
+                    
+                    # Apply delete ranges (exclude data in ANY delete range)
+                    delete_ranges = self.custom_time_ranges.get('delete', [])
+                    if delete_ranges:
+                        for start_time, end_time in delete_ranges:
+                            start_dt = pd.to_datetime(start_time)
+                            end_dt = pd.to_datetime(end_time)
+                            filtered_mask &= ~((df['Timestamp'] >= start_dt) & (df['Timestamp'] <= end_dt))
+                        print(f"[FILTERED_DATA] Applied {len(delete_ranges)} delete ranges: {filtered_mask.sum()} rows")
+                    
+                    filtered_df = df[filtered_mask]
+                    print(f"[FILTERED_DATA] Multi-range filter result: {len(filtered_df)} rows")
+                    return filtered_df
+                except Exception as e:
+                    print(f"[FILTERED_DATA] Error applying multi-range filter: {e}")
+                    import traceback
+                    traceback.print_exc()
+            
+            # Fall back to single-range filter (backward compatibility)
             if self.custom_time_range and 'Timestamp' in self.csv_data.columns:
                 try:
                     df = self.csv_data.copy()

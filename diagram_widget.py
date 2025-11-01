@@ -13,7 +13,8 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QLabel, QFileDialog, QFrame, QGraphicsView,
                              QGraphicsScene, QMessageBox, QComboBox, QToolBar,
                              QDockWidget, QFormLayout, QLineEdit, QSpinBox, QMenu,
-                             QGraphicsItem, QGraphicsItemGroup, QGraphicsRectItem)
+                             QGraphicsItem, QGraphicsItemGroup, QGraphicsRectItem, QDialog,
+                             QDialogButtonBox)
 from PyQt6.QtGui import QPainter, QColor, QPen, QAction, QBrush
 from PyQt6.QtCore import Qt, pyqtSignal, QPointF, QTimer
 
@@ -21,36 +22,44 @@ from component_schemas import SCHEMAS
 from diagram_components import BaseComponentItem, PipeItem, JunctionComponentItem, TXVComponentItem, DistributorComponentItem, SensorBulbComponentItem, FanComponentItem, AirSensorArrayComponentItem, ShelvingGridComponentItem
 
 
-class PropertyEditor(QWidget):
-    """Property editor panel for selected components."""
+class PropertyDialog(QDialog):
+    """Property editor dialog for components (opened on double-click)."""
     
-    def __init__(self, data_manager):
-        super().__init__()
+    def __init__(self, data_manager, item, parent=None):
+        super().__init__(parent)
         self.data_manager = data_manager
-        self.current_item = None
-        
-        self.layout = QFormLayout(self)
-        self.setLayout(self.layout)
-        self.layout.addWidget(QLabel("Select a component to see its properties."))
-    
-    def show_properties(self, item):
-        """Display properties for the selected component."""
-        self.clear_layout()
-        
-        if not item or not isinstance(item, (BaseComponentItem, JunctionComponentItem, TXVComponentItem, DistributorComponentItem, SensorBulbComponentItem, FanComponentItem, AirSensorArrayComponentItem, ShelvingGridComponentItem)):
-            self.current_item = None
-            self.layout.addWidget(QLabel("Select a component to see its properties."))
-            print("[PROPERTY EDITOR] Cleared")
-            return
-        
         self.current_item = item
+        self.temp_changes = {}  # Store changes temporarily until OK is clicked
+        
+        component_data = item.component_data
+        self.setWindowTitle(f"Edit {component_data['type']} Properties")
+        self.setModal(True)
+        self.setMinimumWidth(400)
+        
+        # Main layout
+        main_layout = QVBoxLayout(self)
+        
+        # Form layout for properties
+        self.form_layout = QFormLayout()
+        main_layout.addLayout(self.form_layout)
+        
+        # Populate properties
+        self.populate_properties()
+        
+        # OK/Cancel buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(self.accept_changes)
+        button_box.rejected.connect(self.reject)
+        main_layout.addWidget(button_box)
+    
+    def populate_properties(self):
+        """Populate the form with component properties."""
+        item = self.current_item
         component_data = item.component_data
         schema = item.schema
         
-        print(f"[PROPERTY EDITOR] Showing properties for {component_data['type']}")
-        
         # Title
-        self.layout.addRow(QLabel(f"<b>{component_data['type']}</b>"))
+        self.form_layout.addRow(QLabel(f"<h3>{component_data['type']}</h3>"))
         
         # Component properties from schema
         for prop_name, prop_schema in schema.get('properties', {}).items():
@@ -61,60 +70,62 @@ class PropertyEditor(QWidget):
                 editor = QSpinBox()
                 editor.setRange(prop_schema.get('min', 0), prop_schema.get('max', 9999))
                 editor.setValue(current_value if current_value is not None else prop_schema.get('default', 0))
-                editor.valueChanged.connect(lambda val, p=prop_name: self.update_property(p, val))
-                self.layout.addRow(QLabel(prop_name), editor)
+                editor.valueChanged.connect(lambda val, p=prop_name: self.store_property(p, val))
+                self.form_layout.addRow(QLabel(prop_name), editor)
             elif prop_type == 'string':
                 editor = QLineEdit()
                 editor.setText(current_value or prop_schema.get('default', ''))
-                editor.textChanged.connect(lambda val, p=prop_name: self.update_property(p, val))
-                self.layout.addRow(QLabel(prop_name), editor)
+                editor.textChanged.connect(lambda val, p=prop_name: self.store_property(p, val))
+                self.form_layout.addRow(QLabel(prop_name), editor)
             elif prop_type == 'enum':
                 editor = QComboBox()
                 editor.addItems(prop_schema.get('options', []))
                 if current_value:
                     editor.setCurrentText(current_value)
-                editor.currentTextChanged.connect(lambda val, p=prop_name: self.update_property(p, val))
-                self.layout.addRow(QLabel(prop_name), editor)
+                editor.currentTextChanged.connect(lambda val, p=prop_name: self.store_property(p, val))
+                self.form_layout.addRow(QLabel(prop_name), editor)
         
-        # Rotation control - single button that cycles through angles
+        # Rotation control
         rotate_btn = QPushButton("🔄 Rotate 90°")
         rotate_btn.clicked.connect(self.rotate_component)
-        self.layout.addRow(rotate_btn)
+        self.form_layout.addRow(rotate_btn)
         
-        # Size controls - only for box-type components (not Junction, TXV, Distributor, SensorBulb, Fan, AirSensorArray, or ShelvingGrid)
-        if not isinstance(item, (JunctionComponentItem, TXVComponentItem, DistributorComponentItem, SensorBulbComponentItem, FanComponentItem, AirSensorArrayComponentItem, ShelvingGridComponentItem)):
+        # Size controls - only for box-type components
+        if not isinstance(item, (JunctionComponentItem, TXVComponentItem, DistributorComponentItem, 
+                                SensorBulbComponentItem, FanComponentItem, AirSensorArrayComponentItem, 
+                                ShelvingGridComponentItem)):
             size = component_data.get('size', {'width': 100, 'height': 60})
             
             width_spin = QSpinBox()
             width_spin.setRange(50, 500)
             width_spin.setValue(size['width'])
-            width_spin.valueChanged.connect(lambda val: self.update_size(val, None))
-            self.layout.addRow(QLabel("Width"), width_spin)
+            width_spin.valueChanged.connect(lambda val: self.store_size(val, None))
+            self.form_layout.addRow(QLabel("Width"), width_spin)
             
             height_spin = QSpinBox()
             height_spin.setRange(30, 300)
             height_spin.setValue(size['height'])
-            height_spin.valueChanged.connect(lambda val: self.update_size(None, val))
-            self.layout.addRow(QLabel("Height"), height_spin)
+            height_spin.valueChanged.connect(lambda val: self.store_size(None, val))
+            self.form_layout.addRow(QLabel("Height"), height_spin)
         
-        # Special size controls for AirSensorArray (has block_width and block_height)
+        # Special size controls for AirSensorArray
         if isinstance(item, AirSensorArrayComponentItem):
             block_width = component_data.get('properties', {}).get('block_width', 400)
             block_height = component_data.get('properties', {}).get('block_height', 25)
             
             width_spin = QSpinBox()
-            width_spin.setRange(150, 2000)  # Up to 2000 for full case length
+            width_spin.setRange(150, 2000)
             width_spin.setValue(block_width)
-            width_spin.valueChanged.connect(lambda val: self.update_air_array_size(val, None))
-            self.layout.addRow(QLabel("Block Width"), width_spin)
+            width_spin.valueChanged.connect(lambda val: self.store_property('block_width', val))
+            self.form_layout.addRow(QLabel("Block Width"), width_spin)
             
             height_spin = QSpinBox()
             height_spin.setRange(15, 50)
             height_spin.setValue(block_height)
-            height_spin.valueChanged.connect(lambda val: self.update_air_array_size(None, val))
-            self.layout.addRow(QLabel("Block Height"), height_spin)
+            height_spin.valueChanged.connect(lambda val: self.store_property('block_height', val))
+            self.form_layout.addRow(QLabel("Block Height"), height_spin)
         
-        # Special size controls for ShelvingGrid (has shelf_width, shelf_height, and row_gap)
+        # Special size controls for ShelvingGrid
         if isinstance(item, ShelvingGridComponentItem):
             shelf_width = component_data.get('properties', {}).get('shelf_width', 100)
             shelf_height = component_data.get('properties', {}).get('shelf_height', 60)
@@ -123,251 +134,84 @@ class PropertyEditor(QWidget):
             width_spin = QSpinBox()
             width_spin.setRange(50, 300)
             width_spin.setValue(shelf_width)
-            width_spin.valueChanged.connect(lambda val: self.update_shelving_size(val, None, None))
-            self.layout.addRow(QLabel("Shelf Width"), width_spin)
+            width_spin.valueChanged.connect(lambda val: self.store_property('shelf_width', val))
+            self.form_layout.addRow(QLabel("Shelf Width"), width_spin)
             
             height_spin = QSpinBox()
             height_spin.setRange(30, 150)
             height_spin.setValue(shelf_height)
-            height_spin.valueChanged.connect(lambda val: self.update_shelving_size(None, val, None))
-            self.layout.addRow(QLabel("Shelf Height"), height_spin)
+            height_spin.valueChanged.connect(lambda val: self.store_property('shelf_height', val))
+            self.form_layout.addRow(QLabel("Shelf Height"), height_spin)
             
             gap_spin = QSpinBox()
             gap_spin.setRange(0, 100)
             gap_spin.setValue(row_gap)
-            gap_spin.valueChanged.connect(lambda val: self.update_shelving_size(None, None, val))
-            self.layout.addRow(QLabel("Row Gap"), gap_spin)
+            gap_spin.valueChanged.connect(lambda val: self.store_property('row_gap', val))
+            self.form_layout.addRow(QLabel("Row Gap"), gap_spin)
     
-    def update_shelving_size(self, width, height, gap):
-        """Update shelving grid size."""
-        if not self.current_item or not isinstance(self.current_item, ShelvingGridComponentItem):
-            return
+    def store_property(self, prop_name, value):
+        """Store property change temporarily (applied on OK)."""
+        if 'properties' not in self.temp_changes:
+            self.temp_changes['properties'] = {}
+        self.temp_changes['properties'][prop_name] = value
+    
+    def store_size(self, width, height):
+        """Store size change temporarily."""
+        if 'size' not in self.temp_changes:
+            current_size = self.current_item.component_data.get('size', {'width': 100, 'height': 60})
+            self.temp_changes['size'] = current_size.copy()
         
         if width is not None:
-            self.current_item.component_data['properties']['shelf_width'] = width
+            self.temp_changes['size']['width'] = width
         if height is not None:
-            self.current_item.component_data['properties']['shelf_height'] = height
-        if gap is not None:
-            self.current_item.component_data['properties']['row_gap'] = gap
-        
-        self.current_item.rebuild_ports()
-    
-    def update_air_array_size(self, width, height):
-        """Update air sensor array block size."""
-        if not self.current_item or not isinstance(self.current_item, AirSensorArrayComponentItem):
-            return
-        
-        if width is not None:
-            self.current_item.component_data['properties']['block_width'] = width
-        if height is not None:
-            self.current_item.component_data['properties']['block_height'] = height
-        
-        self.current_item.rebuild_ports()
-    
-    def update_property(self, prop_name, value):
-        """Update a property value and trigger UI update."""
-        if not self.current_item:
-            return
-        
-        if 'properties' not in self.current_item.component_data:
-            self.current_item.component_data['properties'] = {}
-        
-        self.current_item.component_data['properties'][prop_name] = value
-        self.current_item.rebuild_ports()
+            self.temp_changes['size']['height'] = height
     
     def rotate_component(self):
-        """Rotate component by 90 degrees."""
-        if not self.current_item:
-            return
-        
+        """Store rotation change temporarily."""
         current_rotation = self.current_item.component_data.get('rotation', 0)
         new_rotation = (current_rotation + 90) % 360
+        self.temp_changes['rotation'] = new_rotation
         
+        # Show immediate visual feedback
         self.current_item.setRotation(new_rotation)
-        self.current_item.component_data['rotation'] = new_rotation
-        print(f"[ROTATE] {self.current_item.component_data['type']} -> {new_rotation}°")
     
-    def update_size(self, width, height):
-        """Update component size."""
-        if not self.current_item:
-            return
+    def accept_changes(self):
+        """Apply all changes and close dialog."""
+        # Apply properties
+        if 'properties' in self.temp_changes:
+            if 'properties' not in self.current_item.component_data:
+                self.current_item.component_data['properties'] = {}
+            self.current_item.component_data['properties'].update(self.temp_changes['properties'])
         
-        current_size = self.current_item.component_data.get('size', {'width': 100, 'height': 60})
+        # Apply size
+        if 'size' in self.temp_changes:
+            self.current_item.component_data['size'] = self.temp_changes['size']
+            self.current_item.update_size(self.temp_changes['size']['width'], 
+                                         self.temp_changes['size']['height'])
         
-        if width is not None:
-            current_size['width'] = width
-        if height is not None:
-            current_size['height'] = height
+        # Apply rotation
+        if 'rotation' in self.temp_changes:
+            self.current_item.component_data['rotation'] = self.temp_changes['rotation']
         
-        self.current_item.update_size(current_size['width'], current_size['height'])
+        # Rebuild ports to reflect changes
+        self.current_item.rebuild_ports()
+        
+        print(f"[PROPERTY DIALOG] Changes applied to {self.current_item.component_data['type']}")
+        self.accept()
     
-    def show_pipe_properties(self, pipe_item):
-        """Display properties for a selected pipe."""
-        self.clear_layout()
+    def reject(self):
+        """Discard changes and close dialog."""
+        # Revert rotation if it was changed
+        if 'rotation' in self.temp_changes:
+            original_rotation = self.current_item.component_data.get('rotation', 0)
+            self.current_item.setRotation(original_rotation)
         
-        if not pipe_item:
-            return
-        
-        self.current_pipe = pipe_item
-        
-        # Title
-        self.layout.addRow(QLabel(f"<b>Pipe Connection</b>"))
-        
-        # Circuit label (read-only)
-        circuit = pipe_item.pipe_data.get('circuit_label', 'None')
-        self.layout.addRow(QLabel(f"Circuit: {circuit}"))
-        
-        # Show pressure side control
-        pressure_combo = QComboBox()
-        pressure_combo.addItems(["High Pressure", "Low Pressure", "Unspecified"])
-        
-        current_pressure = pipe_item.pipe_data.get('pressure_side', 'any')
-        if current_pressure == 'high':
-            pressure_combo.setCurrentText("High Pressure")
-        elif current_pressure == 'low':
-            pressure_combo.setCurrentText("Low Pressure")
-        else:
-            pressure_combo.setCurrentText("Unspecified")
-        
-        pressure_combo.currentTextChanged.connect(lambda val: self.update_pipe_pressure(val))
-        self.layout.addRow(QLabel("Pressure Side:"), pressure_combo)
-        
-        # Info
-        self.layout.addRow(QLabel(f"Fluid: {pipe_item.pipe_data.get('fluid_state', 'any')}"))
-        self.layout.addRow(QLabel("Click another item to change selection"))
-    
-    def show_multiple_pipe_properties(self, pipe_items):
-        """Display properties for multiple selected pipes - bulk edit."""
-        self.clear_layout()
-        
-        if not pipe_items:
-            return
-        
-        self.current_pipes = pipe_items
-        
-        # Title
-        self.layout.addRow(QLabel(f"<b>{len(pipe_items)} Pipes Selected</b>"))
-        self.layout.addRow(QLabel("Apply properties to all selected pipes:"))
-        
-        # Show pressure side control
-        pressure_combo = QComboBox()
-        pressure_combo.addItems(["High Pressure", "Low Pressure", "Unspecified", "(Keep Individual)"])
-        pressure_combo.setCurrentText("(Keep Individual)")
-        
-        pressure_combo.currentTextChanged.connect(lambda val: self.update_multiple_pipe_pressure(val))
-        self.layout.addRow(QLabel("Set Pressure:"), pressure_combo)
-    
-    def show_custom_sensor_properties(self, sensor_id, sensor_data):
-        """Display properties for a custom sensor."""
-        self.clear_layout()
-        
-        if not sensor_data:
-            return
-        
-        # Title
-        sensor_type = sensor_data.get('type', 'Unknown')
-        self.layout.addRow(QLabel(f"<b>Custom Sensor</b>"))
-        self.layout.addRow(QLabel(f"Type: {sensor_type.replace('_', ' ').title()}"))
-        
-        # Position
-        pos = sensor_data.get('position', [0, 0])
-        self.layout.addRow(QLabel(f"Position: ({pos[0]:.1f}, {pos[1]:.1f})"))
-        
-        # Auto-detected properties
-        if sensor_data.get('auto_detected'):
-            self.layout.addRow(QLabel(""))
-            self.layout.addRow(QLabel("<b>[AUTO-DETECTED]</b>"))
-            
-            circuit = sensor_data.get('circuit_label', 'None')
-            pressure = sensor_data.get('pressure_side', 'any')
-            fluid = sensor_data.get('fluid_state', 'any')
-            
-            # Circuit with color coding
-            circuit_label = QLabel(f"<b>Circuit:</b> {circuit}")
-            if circuit == 'Left':
-                circuit_label.setStyleSheet("color: #2196F3;")  # Blue
-            elif circuit == 'Center':
-                circuit_label.setStyleSheet("color: #4CAF50;")  # Green
-            elif circuit == 'Right':
-                circuit_label.setStyleSheet("color: #FF9800;")  # Orange
-            self.layout.addRow(circuit_label)
-            
-            # Pressure side
-            pressure_text = "High Pressure" if pressure == 'high' else "Low Pressure" if pressure == 'low' else "Unspecified"
-            pressure_label = QLabel(f"<b>Pressure:</b> {pressure_text}")
-            if pressure == 'high':
-                pressure_label.setStyleSheet("color: #FF5722;")  # Red
-            elif pressure == 'low':
-                pressure_label.setStyleSheet("color: #2196F3;")  # Blue
-            self.layout.addRow(pressure_label)
-            
-            # Fluid state
-            self.layout.addRow(QLabel(f"<b>Fluid State:</b> {fluid.title()}"))
-        else:
-            self.layout.addRow(QLabel(""))
-            self.layout.addRow(QLabel("<i>No pipe detected nearby</i>"))
-        
-        # Instructions
-        self.layout.addRow(QLabel(""))
-        self.layout.addRow(QLabel("<i>Ctrl+Left-click to map sensor</i>"))
-        self.layout.addRow(QLabel("<i>Right-click to delete</i>"))
-    
-    def update_multiple_pipe_pressure(self, value):
-        """Update pressure side for all selected pipes."""
-        if not hasattr(self, 'current_pipes') or value == "(Keep Individual)":
-            return
-        
-        # Map display text to internal value
-        pressure_map = {
-            "High Pressure": "high",
-            "Low Pressure": "low",
-            "Unspecified": "any"
-        }
-        
-        new_pressure = pressure_map.get(value, 'any')
-        
-        # Update all pipes
-        for pipe in self.current_pipes:
-            pipe.pipe_data['pressure_side'] = new_pressure
-            
-            # Update the pipe color
-            new_pen = pipe._get_pen_style()
-            pipe.setPen(new_pen)
-            pipe._original_pen = new_pen
-        
-        print(f"[PIPE BULK] Changed {len(self.current_pipes)} pipe(s) to {new_pressure} pressure")
-        
-        # Refresh the property display to show new counts
-        self.show_multiple_pipe_properties(self.current_pipes)
-    
-    def update_pipe_pressure(self, value):
-        """Update pipe pressure side."""
-        if not hasattr(self, 'current_pipe'):
-            return
-        
-        # Map display text to internal value
-        pressure_map = {
-            "High Pressure": "high",
-            "Low Pressure": "low",
-            "Unspecified": "any"
-        }
-        
-        new_pressure = pressure_map.get(value, 'any')
-        self.current_pipe.pipe_data['pressure_side'] = new_pressure
-        
-        # Update the pipe color
-        new_pen = self.current_pipe._get_pen_style()
-        self.current_pipe.setPen(new_pen)
-        self.current_pipe._original_pen = new_pen
-        
-        print(f"[PIPE] Pressure changed to {new_pressure}")
-    
-    def clear_layout(self):
-        """Clear all widgets from the layout."""
-        while self.layout.count():
-            child = self.layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+        print(f"[PROPERTY DIALOG] Changes discarded")
+        super().reject()
+
+
+# Keep PropertyEditor as an alias for backwards compatibility (will be removed later)
+PropertyEditor = PropertyDialog
 
 
 class DiagramWidget(QWidget):
@@ -2955,6 +2799,27 @@ class DiagramWidget(QWidget):
         else:
             if self.property_editor:
                 self.property_editor.show_properties(None)
+    
+    def on_component_double_clicked(self, component_item):
+        """Handle double-click on a component - open property dialog."""
+        from diagram_components import (BaseComponentItem, JunctionComponentItem, TXVComponentItem, 
+                                       DistributorComponentItem, SensorBulbComponentItem, 
+                                       FanComponentItem, AirSensorArrayComponentItem, ShelvingGridComponentItem)
+        
+        # Only handle component items (not pipes or other items)
+        if not isinstance(component_item, (BaseComponentItem, JunctionComponentItem, TXVComponentItem, 
+                                          DistributorComponentItem, SensorBulbComponentItem, 
+                                          FanComponentItem, AirSensorArrayComponentItem, ShelvingGridComponentItem)):
+            return
+        
+        # Open the property dialog
+        dialog = PropertyDialog(self.data_manager, component_item, self)
+        result = dialog.exec()
+        
+        if result == QDialog.DialogCode.Accepted:
+            print(f"[PROPERTY DIALOG] Changes accepted for {component_item.component_data['type']}")
+        else:
+            print(f"[PROPERTY DIALOG] Changes cancelled for {component_item.component_data['type']}")
 
 
 class SensorDot(QFrame):

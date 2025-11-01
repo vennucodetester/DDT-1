@@ -1,8 +1,9 @@
 import pyqtgraph as pg
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QHBoxLayout, QFrame, 
-                             QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox)
+                             QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox,
+                             QToolButton, QMenu)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QAction
 import pandas as pd
 from datetime import datetime
 from timestamp_diagnostics import log_conversion, compare_timestamps
@@ -19,10 +20,9 @@ class GraphWidget(QWidget):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
         
-        # Custom range selection state
-        self.range_selection_mode = False
-        self.range_region = None
-
+        # Multi-range selection state
+        self.range_regions = []  # List of dict: {'region': LinearRegionItem, 'mode': 'keep'|'delete'}
+        
         self.setupUi()
         self.connect_signals()
 
@@ -38,16 +38,28 @@ class GraphWidget(QWidget):
         control_layout = QHBoxLayout(control_bar)
         
         self.reset_zoom_btn = QPushButton("Reset Zoom")
-        self.select_range_btn = QPushButton("📅 Select Custom Range")
-        self.select_range_btn.setCheckable(True)
-        self.select_range_btn.setToolTip("Click to enable range selection, then drag on the graph to select a custom time range")
+        
+        # Create dropdown button for range selection
+        self.range_btn = QToolButton()
+        self.range_btn.setText("Range")
+        self.range_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        range_menu = QMenu(self.range_btn)
+        keep_action = QAction("Keep Range", self)
+        keep_action.triggered.connect(lambda: self.start_range_selection('keep'))
+        delete_action = QAction("Delete Range", self)
+        delete_action.triggered.connect(lambda: self.start_range_selection('delete'))
+        range_menu.addAction(keep_action)
+        range_menu.addAction(delete_action)
+        self.range_btn.setMenu(range_menu)
+        self.range_btn.setToolTip("Keep Range: include data | Delete Range: exclude data")
+        
         self.apply_range_btn = QPushButton("Apply Range")
         self.apply_range_btn.setEnabled(False)
         self.apply_range_btn.setToolTip("Apply the selected time range")
         self.export_btn = QPushButton("Export")
         
         control_layout.addWidget(self.reset_zoom_btn)
-        control_layout.addWidget(self.select_range_btn)
+        control_layout.addWidget(self.range_btn)
         control_layout.addWidget(self.apply_range_btn)
         control_layout.addWidget(self.export_btn)
         control_layout.addStretch()
@@ -76,7 +88,6 @@ class GraphWidget(QWidget):
 
     def connect_signals(self):
         self.reset_zoom_btn.clicked.connect(self.plot_widget.autoRange)
-        self.select_range_btn.toggled.connect(self.toggle_range_selection)
         self.apply_range_btn.clicked.connect(self.apply_custom_range)
         self.export_btn.clicked.connect(self.export_graph)
 
@@ -238,92 +249,65 @@ class GraphWidget(QWidget):
         exporter.export('graph_export.png')
         print("Graph exported to graph_export.png")
     
-    def toggle_range_selection(self, checked):
-        """Toggle custom range selection mode."""
-        self.range_selection_mode = checked
+    def start_range_selection(self, mode):
+        """Start creating a new range selection (keep or delete)."""
+        print(f"[GRAPH RANGE] Starting {mode} range selection")
         
-        if checked:
-            # Enable range selection mode
-            self.select_range_btn.setStyleSheet("background-color: #4CAF50; color: white;")
-            self.select_range_btn.setText("📅 Drag to Select Range")
-            
-            # Remove existing range region if any
-            if self.range_region:
-                self.plot_widget.removeItem(self.range_region)
-            
-            # Create a new linear region item for selection
-            self.range_region = pg.LinearRegionItem(
-                values=[0, 1],
-                brush=pg.mkBrush(QColor(100, 149, 237, 80)),  # Semi-transparent blue
-                movable=True,
-                pen=pg.mkPen(color=QColor(30, 144, 255), width=3),  # Bright blue edges
-                hoverPen=pg.mkPen(color=QColor(255, 165, 0), width=5)  # Orange on hover
-            )
-            self.plot_widget.addItem(self.range_region)
-            
-            # Enable apply button
-            self.apply_range_btn.setEnabled(True)
-            
-            # Position the region based on actual data timestamps if available
-            df = self.data_manager.get_filtered_data()
-            if df is not None and 'Timestamp' in df.columns:
-                try:
-                    timestamps = pd.to_datetime(df['Timestamp']).astype('int64') // 10**9
-                    mid_point = (timestamps.min() + timestamps.max()) / 2
-                    width = (timestamps.max() - timestamps.min()) * 0.3
-                    self.range_region.setRegion([mid_point - width/2, mid_point + width/2])
-                    print(f"[GRAPH RANGE] Positioned range region based on data: {mid_point - width/2} to {mid_point + width/2}")
-                    print(f"[GRAPH RANGE] Data timestamp range: {timestamps.min()} to {timestamps.max()}")
-                    print(f"[GRAPH RANGE] Range region positioned at: {mid_point - width/2} to {mid_point + width/2}")
-                except Exception as e:
-                    print(f"[GRAPH RANGE] Error positioning range region: {e}")
-                    # Fallback to view range
-                    view_range = self.plot_widget.viewRange()[0]
-                    mid_point = (view_range[0] + view_range[1]) / 2
-                    width = (view_range[1] - view_range[0]) * 0.3
-                    self.range_region.setRegion([mid_point - width/2, mid_point + width/2])
-            else:
-                print(f"[GRAPH RANGE] No data or Timestamp column found, using view range")
+        # Determine colors based on mode
+        if mode == 'keep':
+            brush_color = QColor(100, 149, 237, 80)  # Semi-transparent blue
+            pen_color = QColor(30, 144, 255)  # Bright blue edges
+        else:  # delete
+            brush_color = QColor(237, 100, 100, 80)  # Semi-transparent red
+            pen_color = QColor(255, 30, 30)  # Bright red edges
+        
+        # Create a new linear region item for selection
+        range_region = pg.LinearRegionItem(
+            values=[0, 1],
+            brush=pg.mkBrush(brush_color),
+            movable=True,
+            pen=pg.mkPen(color=pen_color, width=3),
+            hoverPen=pg.mkPen(color=QColor(255, 165, 0), width=5)  # Orange on hover
+        )
+        self.plot_widget.addItem(range_region)
+        
+        # Add to range regions list
+        self.range_regions.append({'region': range_region, 'mode': mode})
+        
+        # Enable apply button
+        self.apply_range_btn.setEnabled(True)
+        
+        # Position the region based on actual data timestamps if available
+        df = self.data_manager.get_filtered_data()
+        if df is not None and 'Timestamp' in df.columns:
+            try:
+                timestamps = pd.to_datetime(df['Timestamp']).astype('int64') // 10**9
+                mid_point = (timestamps.min() + timestamps.max()) / 2
+                width = (timestamps.max() - timestamps.min()) * 0.3
+                range_region.setRegion([mid_point - width/2, mid_point + width/2])
+                print(f"[GRAPH RANGE] Positioned {mode} range region based on data: {mid_point - width/2} to {mid_point + width/2}")
+            except Exception as e:
+                print(f"[GRAPH RANGE] Error positioning range region: {e}")
                 # Fallback to view range
                 view_range = self.plot_widget.viewRange()[0]
                 mid_point = (view_range[0] + view_range[1]) / 2
                 width = (view_range[1] - view_range[0]) * 0.3
-                self.range_region.setRegion([mid_point - width/2, mid_point + width/2])
+                range_region.setRegion([mid_point - width/2, mid_point + width/2])
         else:
-            # Disable range selection mode
-            self.select_range_btn.setStyleSheet("")
-            self.select_range_btn.setText("📅 Select Custom Range")
-            
-            # Remove the range region
-            if self.range_region:
-                self.plot_widget.removeItem(self.range_region)
-                self.range_region = None
-            
-            # Disable apply button
-            self.apply_range_btn.setEnabled(False)
+            print(f"[GRAPH RANGE] No data or Timestamp column found, using view range")
+            # Fallback to view range
+            view_range = self.plot_widget.viewRange()[0]
+            mid_point = (view_range[0] + view_range[1]) / 2
+            width = (view_range[1] - view_range[0]) * 0.3
+            range_region.setRegion([mid_point - width/2, mid_point + width/2])
     
     def apply_custom_range(self):
-        """Apply the selected time range as the custom range."""
-        if not self.range_region:
+        """Apply all selected time ranges (keep/delete) as filters."""
+        if not self.range_regions:
+            QMessageBox.warning(self, "No Ranges Selected", "Please select at least one range before applying.")
             return
         
-        # Get the selected range values (Unix timestamps from DateAxisItem)
-        start_unix, end_unix = self.range_region.getRegion()
-        print(f"[GRAPH RANGE] Selected range (Unix timestamps): {start_unix} to {end_unix}")
-        
-        # DIAGNOSTIC: Log the raw Unix timestamps from range region
-        log_conversion(
-            stage="RANGE_REGION_RAW",
-            description="Start Unix timestamp from range region",
-            value=start_unix,
-            as_datetime=datetime.fromtimestamp(start_unix).strftime('%Y-%m-%d %H:%M:%S')
-        )
-        log_conversion(
-            stage="RANGE_REGION_RAW",
-            description="End Unix timestamp from range region",
-            value=end_unix,
-            as_datetime=datetime.fromtimestamp(end_unix).strftime('%Y-%m-%d %H:%M:%S')
-        )
+        print(f"[GRAPH RANGE] Applying {len(self.range_regions)} range selections")
         
         # Get the data to determine if we're using timestamps or indices
         df = self.data_manager.get_filtered_data()
@@ -331,134 +315,51 @@ class GraphWidget(QWidget):
             print(f"[GRAPH RANGE] No data available")
             return
         
-        # Check if we have a Timestamp column
-        if 'Timestamp' in df.columns:
-            try:
-                # CRITICAL FIX: Convert Unix timestamps back using the SAME offset as plotting
-                import time
-                if time.daylight:
-                    offset_sec = time.altzone
-                    tz_name = time.tzname[1]
-                else:
-                    offset_sec = time.timezone
-                    tz_name = time.tzname[0]
-                
-                print(f"[GRAPH RANGE] Converting back from UTC with timezone: {tz_name}")
-                print(f"[GRAPH RANGE] Timezone offset: {offset_sec}s")
-                
-                # Unix timestamps from DateAxisItem are UTC times
-                # Convert them back to local time by SUBTRACTING the offset
-                # Local time = UTC time - offset_sec
-                # Example: 11:02:32 UTC - 18000s (5 hours) = 06:02:32 CDT
-                start_utc = pd.to_datetime(start_unix, unit='s')
-                end_utc = pd.to_datetime(end_unix, unit='s')
-                
-                # Convert UTC back to local time
-                start_dt = start_utc - pd.Timedelta(seconds=offset_sec)
-                end_dt = end_utc - pd.Timedelta(seconds=offset_sec)
-                
-                # DIAGNOSTIC: Log the converted datetime objects
-                log_conversion(
-                    stage="RANGE_UNIX_TO_DATETIME",
-                    description="Start datetime after pd.to_datetime(unit='s') conversion",
-                    value=start_dt,
-                    source_unix=start_unix,
-                    timezone=start_dt.tzinfo,
-                    is_naive=start_dt.tzinfo is None,
-                    conversion_method="pd.to_datetime(unit='s')"
-                )
-                log_conversion(
-                    stage="RANGE_UNIX_TO_DATETIME",
-                    description="End datetime after pd.to_datetime(unit='s') conversion",
-                    value=end_dt,
-                    source_unix=end_unix,
-                    timezone=end_dt.tzinfo,
-                    is_naive=end_dt.tzinfo is None,
-                    conversion_method="pd.to_datetime(unit='s')"
-                )
-                
-                print(f"[GRAPH RANGE] Converted to datetime: {start_dt} to {end_dt}")
-                print(f"[GRAPH RANGE] Duration: {end_dt - start_dt}")
-                
-                # Verify against actual data range
-                timestamps = pd.to_datetime(df['Timestamp'])
-                data_start = timestamps.min()
-                data_end = timestamps.max()
-                print(f"[GRAPH RANGE] Data range: {data_start} to {data_end}")
-                
-                # DIAGNOSTIC: Compare selected range with actual data
-                compare_timestamps(
-                    "Selected Start vs Data Start",
-                    start_dt,
-                    data_start
-                )
-                compare_timestamps(
-                    "Selected End vs Data End",
-                    end_dt,
-                    data_end
-                )
-            except Exception as e:
-                print(f"[GRAPH RANGE] Error with timestamp conversion: {e}")
-                import traceback
-                traceback.print_exc()
-                return
-        else:
-            # CRITICAL FIX: Data is plotted by index, so values are row indices
-            # We need to convert indices to actual timestamps from Date/Time columns
-            print(f"[GRAPH RANGE] Using index-based selection (no Timestamp column)")
+        # Separate keep and delete ranges
+        keep_ranges = []
+        delete_ranges = []
+        
+        # Process each range region
+        import time
+        for range_info in self.range_regions:
+            range_region = range_info['region']
+            mode = range_info['mode']
+            start_unix, end_unix = range_region.getRegion()
             
-            # Check if we have Date and Time columns to construct timestamps
-            if 'Date' in df.columns and 'Time' in df.columns:
+            # Convert Unix timestamps to datetime
+            if 'Timestamp' in df.columns:
                 try:
-                    # Combine Date and Time to create timestamps
-                    date_str = df['Date'].astype(str)
-                    time_str = df['Time'].astype(str)
-                    timestamp_str = date_str + ' ' + time_str
-                    timestamps = pd.to_datetime(timestamp_str, errors='coerce')
+                    if time.daylight:
+                        offset_sec = time.altzone
+                    else:
+                        offset_sec = time.timezone
                     
-                    # Convert index values to row indices (clamp to valid range)
-                    start_idx = int(max(0, min(start_val, len(df) - 1)))
-                    end_idx = int(max(0, min(end_val, len(df) - 1)))
+                    start_utc = pd.to_datetime(start_unix, unit='s')
+                    end_utc = pd.to_datetime(end_unix, unit='s')
+                    start_dt = start_utc - pd.Timedelta(seconds=offset_sec)
+                    end_dt = end_utc - pd.Timedelta(seconds=offset_sec)
                     
-                    print(f"[GRAPH RANGE] Index range: {start_idx} to {end_idx}")
-                    print(f"[GRAPH RANGE] Total rows: {len(df)}")
-                    
-                    # Get the actual timestamps for these indices
-                    start_dt = timestamps.iloc[start_idx]
-                    end_dt = timestamps.iloc[end_idx]
-                    
-                    print(f"[GRAPH RANGE] Converted indices to datetime: {start_dt} to {end_dt}")
+                    if mode == 'keep':
+                        keep_ranges.append((start_dt, end_dt))
+                    else:
+                        delete_ranges.append((start_dt, end_dt))
+                    print(f"[GRAPH RANGE] {mode.capitalize()} range: {start_dt} to {end_dt}")
                 except Exception as e:
-                    print(f"[GRAPH RANGE] Error converting indices to timestamps: {e}")
+                    print(f"[GRAPH RANGE] Error converting timestamp for {mode} range: {e}")
                     import traceback
                     traceback.print_exc()
-                    return
-            else:
-                print(f"[GRAPH RANGE] No Date/Time columns available for timestamp conversion")
-                return
         
-        print(f"[GRAPH RANGE] Range duration: {end_dt - start_dt}")
+        # Call data manager's multi-range filter method
+        self.data_manager.set_multi_range_filter(keep_ranges, delete_ranges)
         
-        # Verify the range against actual data
-        if 'Timestamp' in df.columns:
-            try:
-                timestamps = pd.to_datetime(df['Timestamp'])
-                data_start = timestamps.min()
-                data_end = timestamps.max()
-                print(f"[GRAPH RANGE] Data range: {data_start} to {data_end}")
-                print(f"[GRAPH RANGE] Data range spans: {data_end - data_start}")
-            except Exception as e:
-                print(f"[GRAPH RANGE] Error checking data range: {e}")
+        # Clear all range regions from graph
+        for range_info in self.range_regions:
+            self.plot_widget.removeItem(range_info['region'])
+        self.range_regions.clear()
+        self.apply_range_btn.setEnabled(False)
         
-        # Set the custom time range in data manager
-        self.data_manager.set_custom_time_range(start_dt, end_dt)
-        
-        # Disable selection mode
-        self.select_range_btn.setChecked(False)
-        
-        # CRITICAL FIX: Refresh the graph display with the new filtered data
-        print(f"[GRAPH RANGE] Refreshing graph display with custom range...")
-        print(f"[GRAPH RANGE] About to call update_ui()...")
+        # Refresh the graph display
+        print(f"[GRAPH RANGE] Refreshing graph display with multi-range filter...")
         try:
             self.update_ui()
             print(f"[GRAPH RANGE] update_ui() completed successfully")
@@ -468,13 +369,13 @@ class GraphWidget(QWidget):
             traceback.print_exc()
         
         # Show confirmation message
+        keep_count = len(keep_ranges)
+        delete_count = len(delete_ranges)
         QMessageBox.information(
             self,
-            "Custom Range Applied",
-            f"Custom time range set:\n\n"
-            f"From: {start_dt.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            f"To: {end_dt.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+            "Custom Ranges Applied",
+            f"Applied {keep_count} keep range(s) and {delete_count} delete range(s).\n\n"
             f"The time range selector has been set to 'Custom'."
         )
         
-        print(f"Custom range applied: {start_dt} to {end_dt}")
+        print(f"Multi-range filter applied: {keep_count} keep, {delete_count} delete")

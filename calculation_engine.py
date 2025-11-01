@@ -690,7 +690,6 @@ def calculate_volumetric_efficiency(rated_inputs: Dict, refrigerant: str = 'R290
 def calculate_row_performance(
     row: pd.Series,
     sensor_map: Dict[str, str],
-    eta_vol: float,
     comp_specs: Dict,
     refrigerant: str = 'R290'
 ) -> pd.Series:
@@ -704,8 +703,7 @@ def calculate_row_performance(
     Args:
         row: Single row from DataFrame (pandas Series)
         sensor_map: Dict mapping internal role keys to CSV column names
-        eta_vol: Volumetric efficiency from Step 1
-        comp_specs: Dict with 'displacement_m3' key
+        comp_specs: Dict with 'gpm_water' key
         refrigerant: Refrigerant name (default 'R290')
 
     Returns:
@@ -719,33 +717,45 @@ def calculate_row_performance(
     try:
         # Helper function to safely get values from the row
         def get_val(key):
-            col_name = sensor_map.get(key)
-            if col_name is None:
+            col_name_or_list = sensor_map.get(key)
+            if col_name_or_list is None:
                 return None
-            return row.get(col_name)
+            
+            # If it's a list (for averaging), compute average
+            if isinstance(col_name_or_list, list):
+                values = []
+                for col_name in col_name_or_list:
+                    val = row.get(col_name)
+                    if val is not None:
+                        values.append(val)
+                if not values:
+                    return None
+                return sum(values) / len(values)
+            
+            # Otherwise it's a single column name
+            return row.get(col_name_or_list)
 
         # ===== 1. GET ALL SENSOR VALUES (INCLUDING 8 MISSING ONES) =====
         # Pressures
         p_suc_psig = get_val('P_suc')
         p_disch_psig = get_val('P_disch')
-        rpm = get_val('RPM')
 
         # LH circuit (8 sensors total: inlet + outlet for each coil)
         t_1a_lh_f = get_val('T_1a-lh')  # TXV outlet / Evap inlet LH
-        t_1b_lh_f = get_val('T_1b-lh')  # Coil inlet LH
-        t_2a_lh_f = get_val('T_2a-LH')  # Evap outlet LH
+        t_1b_lh_f = get_val('_avg_T_1b-lh') if '_avg_T_1b-lh' in sensor_map else get_val('T_1b-lh')  # Coil inlet LH (averaged)
+        t_2a_lh_f = get_val('_avg_T_2a-LH') if '_avg_T_2a-LH' in sensor_map else get_val('T_2a-LH')  # Evap outlet LH (averaged)
         t_4b_lh_f = get_val('T_4b-lh')  # TXV inlet LH
 
         # CTR circuit
         t_1a_ctr_f = get_val('T_1a-ctr')  # TXV outlet / Evap inlet CTR
-        t_1b_ctr_f = get_val('T_1b-ctr')  # Coil inlet CTR
-        t_2a_ctr_f = get_val('T_2a-ctr')  # Evap outlet CTR
+        t_1b_ctr_f = get_val('_avg_T_1b-ctr') if '_avg_T_1b-ctr' in sensor_map else get_val('T_1b-ctr')  # Coil inlet CTR (averaged)
+        t_2a_ctr_f = get_val('_avg_T_2a-ctr') if '_avg_T_2a-ctr' in sensor_map else get_val('T_2a-ctr')  # Evap outlet CTR (averaged)
         t_4b_ctr_f = get_val('T_4b-ctr')  # TXV inlet CTR
 
         # RH circuit
         t_1a_rh_f = get_val('T_1a-rh')  # TXV outlet / Evap inlet RH
-        t_1c_rh_f = get_val('T_1c-rh')  # Coil inlet RH (note: 1c not 1b per Excel)
-        t_2a_rh_f = get_val('T_2a-RH')  # Evap outlet RH
+        t_1c_rh_f = get_val('_avg_T_1c-rh') if '_avg_T_1c-rh' in sensor_map else get_val('T_1c-rh')  # Coil inlet RH (averaged)
+        t_2a_rh_f = get_val('_avg_T_2a-RH') if '_avg_T_2a-RH' in sensor_map else get_val('T_2a-RH')  # Evap outlet RH (averaged)
         t_4b_rh_f = get_val('T_4b-rh')  # TXV inlet RH
 
         # Compressor and Condenser
@@ -865,7 +875,7 @@ def calculate_row_performance(
             # Calculate enthalpy for P-h diagram (MISSING IN OLD CODE)
             t_3a_k = f_to_k(t_3a_f)
             h_3a = CP.PropsSI('H', 'T', t_3a_k, 'P', p_disch_pa, refrigerant)
-        results['rpm'] = rpm
+        # RPM column removed - no longer needed with water-side calculations
 
         # ===== 8. AT CONDENSER (Columns 34-40) =====
         # Excel column names: T_3b, P_disch, T_4a, T_sat.cond, S.C, T_waterin, T_waterout
@@ -929,30 +939,52 @@ def calculate_row_performance(
 
         # ===== 12. TOTAL (Columns 53-54) =====
         # Excel column names: m_dot, qc
-        # Goal-2C: Only calculate if RPM is available
-        if rpm is not None and rpm > 0 and rho_2b and eta_vol > 0:
-            disp_m3 = comp_specs.get('displacement_m3', 0)
-            if disp_m3 > 0:
-                # Mass flow rate in kg/s
-                mass_flow_kgs = rho_2b * eta_vol * disp_m3 * (rpm / 60)
-
-                # Average enthalpy at TXV inlet (average of 3 circuits)
-                h_4b_values = []
-                if h_4b_lh is not None:
-                    h_4b_values.append(h_4b_lh)
-                if h_4b_ctr is not None:
-                    h_4b_values.append(h_4b_ctr)
-                if h_4b_rh is not None:
-                    h_4b_values.append(h_4b_rh)
-
-                if h_4b_values and h_2b is not None:
-                    h_4b_avg = sum(h_4b_values) / len(h_4b_values)
-
-                    # Cooling capacity in Watts
-                    cooling_cap_w = mass_flow_kgs * (h_2b - h_4b_avg)
-
-                    results['m_dot'] = mass_flow_kgs * 2.20462 * 3600  # to lb/hr
-                    results['qc'] = cooling_cap_w * 3.41214  # to BTU/hr
+        # Water-side mass flow calculation
+        gpm_water = comp_specs.get('gpm_water')
+        
+        if gpm_water and t_waterin_f is not None and t_waterout_f is not None:
+            # Calculate water temperature delta
+            delta_t_water_f = t_waterout_f - t_waterin_f
+            
+            # Get condenser enthalpy change (refrigerant side)
+            if h_3a and h_4a:
+                # Convert J/kg to BTU/lb: J/kg * 0.0004299 = BTU/lb
+                h_3a_btulb = h_3a * 0.0004299
+                h_4a_btulb = h_4a * 0.0004299
+                delta_h_condenser_btulb = h_3a_btulb - h_4a_btulb
+                
+                if delta_h_condenser_btulb > 0:
+                    # Water-side heat rejection (BTU/hr)
+                    # Q_water = 500.4 * GPM * delta_T
+                    q_water_btuhr = 500.4 * gpm_water * delta_t_water_f
+                    
+                    # Mass flow rate (lb/hr) from energy balance
+                    mass_flow_lbhr = q_water_btuhr / delta_h_condenser_btulb
+                    
+                    results['m_dot'] = mass_flow_lbhr
+                    
+                    # Calculate cooling capacity
+                    if h_2b:
+                        h_4b_values = []
+                        if h_4b_lh is not None:
+                            h_4b_values.append(h_4b_lh)
+                        if h_4b_ctr is not None:
+                            h_4b_values.append(h_4b_ctr)
+                        if h_4b_rh is not None:
+                            h_4b_values.append(h_4b_rh)
+                        
+                        if h_4b_values:
+                            h_4b_avg = sum(h_4b_values) / len(h_4b_values)
+                            
+                            # Convert to BTU/lb
+                            h_2b_btulb = h_2b * 0.0004299
+                            h_4b_avg_btulb = h_4b_avg * 0.0004299
+                            delta_h_evap_btulb = h_2b_btulb - h_4b_avg_btulb
+                            
+                            # Cooling capacity (BTU/hr)
+                            cooling_cap_btuhr = mass_flow_lbhr * delta_h_evap_btulb
+                            
+                            results['qc'] = cooling_cap_btuhr
 
         # ===== 13. P-H DIAGRAM SPECIFIC COLUMNS =====
         # These columns allow ph_diagram_generator.py to find the data it needs

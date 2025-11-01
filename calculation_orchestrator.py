@@ -9,14 +9,7 @@ from typing import Dict, Optional, List
 import pandas as pd
 from port_resolver import resolve_mapped_sensor, get_sensor_value
 from calculation_engine import (
-    compute_8_point_cycle,
-    calculate_mass_flow_rate,
-    calculate_system_performance,
-    calculate_volumetric_efficiency,
     calculate_row_performance,
-    f_to_k,
-    psig_to_pa,
-    ft3_to_m3
 )
 
 
@@ -410,25 +403,22 @@ REQUIRED_SENSOR_ROLES = {
     'T_waterin': [('Condenser', 'water_inlet')],
     'T_waterout': [('Condenser', 'water_outlet')],
 
-    # LH circuit (ADDED T_1a-lh, T_1b-lh - were missing)
-    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],
-    'T_1b-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],  # FIXED: was 'coil_inlet_1'
-    'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],
+    # LH circuit (FIXED: T_1a maps to TXV outlet, T_1b averages ALL coil inlets)
+    'T_1a-lh': [('TXV', 'outlet', {'circuit_label': 'Left'})],
+    'T_1b-lh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Left'})],  # Will be averaged across all circuits
+    'T_2a-LH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Left'})],  # Will be averaged across all circuits
     'T_4b-lh': [('TXV', 'inlet', {'circuit_label': 'Left'})],
 
-    # CTR circuit (ADDED T_1a-ctr, T_1b-ctr - were missing)
-    # FIXED: T_1b now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],
-    'T_1b-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],  # FIXED: was 'coil_inlet_1'
-    'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],
+    # CTR circuit (FIXED: T_1a maps to TXV outlet, T_1b averages ALL coil inlets)
+    'T_1a-ctr': [('TXV', 'outlet', {'circuit_label': 'Center'})],
+    'T_1b-ctr': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Center'})],  # Will be averaged across all circuits
+    'T_2a-ctr': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Center'})],  # Will be averaged across all circuits
     'T_4b-ctr': [('TXV', 'inlet', {'circuit_label': 'Center'})],
 
-    # RH circuit (ADDED T_1a-rh, T_1c-rh - were missing)
-    # FIXED: T_1c now correctly maps to evaporator inlet (same as T_1a)
-    'T_1a-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],
-    'T_1c-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],  # FIXED: was 'coil_inlet_1'
-    'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],
+    # RH circuit (FIXED: T_1a maps to TXV outlet, T_1c averages ALL coil inlets)
+    'T_1a-rh': [('TXV', 'outlet', {'circuit_label': 'Right'})],
+    'T_1c-rh': [('Evaporator', 'inlet_circuit_1', {'circuit_label': 'Right'})],  # Will be averaged across all circuits
+    'T_2a-RH': [('Evaporator', 'outlet_circuit_1', {'circuit_label': 'Right'})],  # Will be averaged across all circuits
     'T_4b-rh': [('TXV', 'inlet', {'circuit_label': 'Right'})],
 
     # Condenser water temperatures (optional display fields)
@@ -501,39 +491,15 @@ def run_batch_processing(
     """
     print(f"[BATCH PROCESSING] Starting batch processing on {len(input_dataframe)} rows...")
 
-    # === STEP 1: GET RATED INPUTS AND CALCULATE ETA_VOL ===
+    # === STEP 1: GET RATED INPUTS AND SYSTEM SPECS ===
     rated_inputs = data_manager.rated_inputs
     refrigerant = data_manager.refrigerant or 'R290'
 
-    eta_vol_results = calculate_volumetric_efficiency(rated_inputs, refrigerant)
-
-    # Goal-2C: Handle CoolProp errors (fatal)
-    if 'error' in eta_vol_results:
-        print(f"[BATCH PROCESSING] ERROR in Step 1 (eta_vol): {eta_vol_results['error']}")
-        print("[BATCH PROCESSING] Please ensure CoolProp is installed.")
-        return pd.DataFrame({'error': [eta_vol_results['error']]})
-
-    # Goal-2C: Handle graceful degradation warnings (non-fatal)
-    eta_vol = eta_vol_results.get('eta_vol', 0.85)
-    method = eta_vol_results.get('method', 'calculated')
-    warnings = eta_vol_results.get('warnings', [])
-
-    if method == 'default':
-        print(f"[BATCH PROCESSING] WARNING: Using default eta_vol = {eta_vol:.4f}")
-        for warning in warnings:
-            print(f"[BATCH PROCESSING] WARNING: {warning}")
-    else:
-        print(f"[BATCH PROCESSING] Step 1 complete: eta_vol = {eta_vol:.4f} (calculated from rated inputs)")
-
-    # === STEP 2: GET COMPRESSOR SPECS ===
-    # Convert displacement from user input (ft³) to m³ for the engine
-    # Handle None values: if key exists but value is None, treat as missing (default to 0)
-    rated_disp_ft3 = rated_inputs.get('disp_ft3') or 0
-    
+    # === GET SYSTEM SPECS ===
     comp_specs = {
-        'displacement_m3': ft3_to_m3(rated_disp_ft3)
+        'gpm_water': rated_inputs.get('gpm_water')
     }
-    print(f"[BATCH PROCESSING] Compressor displacement: {rated_disp_ft3} ft^3 = {comp_specs['displacement_m3']:.6f} m^3")
+    print(f"[BATCH PROCESSING] Water flow rate: {comp_specs.get('gpm_water', 'Not set')} GPM")
 
     # === STEP 3: BUILD THE SENSOR NAME MAP ===
     diagram_model = data_manager.diagram_model
@@ -552,6 +518,55 @@ def run_batch_processing(
 
         if key not in sensor_map:
             print(f"[BATCH PROCESSING] WARNING: No sensor mapped for required role '{key}' (or column missing in input data)")
+    
+    # Special handling for T_1b, T_2a (coil inlets/outlets that need averaging)
+    # Find ALL mapped circuits for Left, Center, Right evaporators
+    components = diagram_model.get('components', {})
+    circuit_avg_keys = {}  # Will contain lists of sensor names to average
+    
+    for side in ['Left', 'Center', 'Right']:
+        # Find the evaporator for this side
+        evap_id = None
+        for comp_id, comp in components.items():
+            if comp.get('type') == 'Evaporator' and comp.get('properties', {}).get('circuit_label') == side:
+                evap_id = comp_id
+                break
+        
+        if evap_id:
+            # Check how many circuits this evaporator has
+            circuits = comp.get('properties', {}).get('circuits', 1)
+            
+            # Collect all inlet circuit sensors for T_1b
+            inlet_sensors = []
+            outlet_sensors = []
+            for i in range(1, circuits + 1):
+                inlet_port = f'inlet_circuit_{i}'
+                outlet_port = f'outlet_circuit_{i}'
+                from port_resolver import resolve_mapped_sensor
+                inlet_sensor = resolve_mapped_sensor(diagram_model, 'Evaporator', evap_id, inlet_port)
+                outlet_sensor = resolve_mapped_sensor(diagram_model, 'Evaporator', evap_id, outlet_port)
+                
+                if inlet_sensor and inlet_sensor in input_columns:
+                    inlet_sensors.append(inlet_sensor)
+                if outlet_sensor and outlet_sensor in input_columns:
+                    outlet_sensors.append(outlet_sensor)
+            
+            # Store for averaging (will be processed in calculate_row_performance)
+            if side == 'Left':
+                if inlet_sensors:
+                    sensor_map[f'_avg_T_1b-lh'] = inlet_sensors
+                if outlet_sensors:
+                    sensor_map[f'_avg_T_2a-LH'] = outlet_sensors
+            elif side == 'Center':
+                if inlet_sensors:
+                    sensor_map[f'_avg_T_1b-ctr'] = inlet_sensors
+                if outlet_sensors:
+                    sensor_map[f'_avg_T_2a-ctr'] = outlet_sensors
+            elif side == 'Right':
+                if inlet_sensors:
+                    sensor_map[f'_avg_T_1c-rh'] = inlet_sensors
+                if outlet_sensors:
+                    sensor_map[f'_avg_T_2a-RH'] = outlet_sensors
 
     print(f"[BATCH PROCESSING] Sensor map built with {len(sensor_map)} valid mappings (validated against DataFrame columns)")
     print(f"[BATCH PROCESSING] Sensor map: {sensor_map}")
@@ -563,7 +578,6 @@ def run_batch_processing(
         calculate_row_performance,
         axis=1,
         sensor_map=sensor_map,
-        eta_vol=eta_vol,
         comp_specs=comp_specs,
         refrigerant=refrigerant
     )

@@ -16,30 +16,19 @@ from PyQt6.QtGui import QFont
 
 class InputDialog(QDialog):
     """
-    Dialog for entering rated performance inputs from manufacturer's data sheet.
+    Dialog for entering rated performance inputs and system parameters.
 
-    This dialog collects the 7 required rated performance inputs:
-    1. Rated Cooling Capacity (BTU/hr)
-    2. Rated Power Consumption (W)
-    3. Rated Mass Flow Rate (lbm/hr)
-    4. Rated Compressor Speed (Hz)
-    5. Compressor Displacement (ft³)
-    6. Rated Evaporator Temperature (°F)
-    7. Rated Return Gas Temperature (°F)
-
-    These values are used to calculate volumetric efficiency (eta_vol) in the
-    unified calculation engine.
+    This dialog collects:
+    1. Rated Cooling Capacity (BTU/hr) - for validation/comparison
+    2. Rated Power Consumption (W) - for COP calculations
+    3. Water Flow Rate (GPM) - for water-side mass flow calculations
     """
 
     # Field definitions: (internal_name, user-friendly_label)
     FIELD_DEFINITIONS = [
         ('rated_capacity_btu_hr', 'Rated Cooling Capacity (BTU/hr)'),
         ('rated_power_w', 'Rated Power Consumption (W)'),
-        ('m_dot_rated_lbhr', 'Rated Mass Flow Rate (lbm/hr)'),
-        ('hz_rated', 'Rated Compressor Speed (Hz)'),
-        ('disp_ft3', 'Compressor Displacement (ft³)'),
-        ('rated_evap_temp_f', 'Rated Evaporator Temperature (°F)'),
-        ('rated_return_gas_temp_f', 'Rated Return Gas Temperature (°F)'),
+        ('gpm_water', 'Water Flow Rate (GPM)'),
     ]
 
     def __init__(self, parent=None):
@@ -68,15 +57,15 @@ class InputDialog(QDialog):
 
         # Instructions
         instructions = QLabel(
-            "Enter the rated performance values from the compressor manufacturer's data sheet.\n"
-            "These values are required for accurate volumetric efficiency calculations."
+            "Enter the rated performance values and system parameters.\n"
+            "Water flow rate is required for water-side mass flow calculations."
         )
         instructions.setWordWrap(True)
         instructions.setStyleSheet("color: gray; font-style: italic;")
         layout.addWidget(instructions)
 
         # Group box for inputs
-        input_group = QGroupBox("Manufacturer Data Sheet Values")
+        input_group = QGroupBox("System Parameters")
         form_layout = QFormLayout()
         form_layout.setSpacing(10)
         form_layout.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -197,11 +186,9 @@ if __name__ == "__main__":
 
     # Test pre-filling with data
     test_data = {
-        'm_dot_rated_lbhr': 211.0,
-        'hz_rated': 75.0,
-        'disp_ft3': 0.5,
-        'rated_evap_temp_f': 40.0,
-        'rated_return_gas_temp_f': 50.0,
+        'rated_capacity_btu_hr': 12000.0,
+        'rated_power_w': 1000.0,
+        'gpm_water': 5.0,
     }
     dialog.set_data(test_data)
 

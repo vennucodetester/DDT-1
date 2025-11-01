@@ -64,6 +64,12 @@ class BaseComponentItem(QGraphicsRectItem):
     
     def rebuild_ports(self):
         """Rebuild all ports based on schema and current properties."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             if port_item.scene():
@@ -200,6 +206,41 @@ class BaseComponentItem(QGraphicsRectItem):
                     self.ports[port_name] = port_item
                     if self.scene():
                         self.scene().addItem(port_item)
+        
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    # Need to check if this pipe's start or end port was this one
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        # Check if pipe was connected to this port (by checking component_id and port name in pipe_data)
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            # Check if this is the start port
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            # Update start_port_item if it matches
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            # Update end_port_item if it matches
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    # Update pipe path to reflect new port position
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
     
     def update_size(self, width, height):
         """Update component size and reposition ports."""
@@ -230,6 +271,17 @@ class BaseComponentItem(QGraphicsRectItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            # Notify the scene/view that this component was double-clicked
+            # The DiagramWidget will handle opening the property dialog
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class PortItem(QGraphicsEllipseItem):
@@ -525,6 +577,12 @@ class JunctionComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Rebuild all ports based on inlet/outlet counts."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports (they're child items, so just delete them)
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)  # Remove from parent
@@ -585,6 +643,36 @@ class JunctionComponentItem(QGraphicsPathItem):
         sensor_port.setPos(0, 0)  # Center of junction
         self.ports['sensor'] = sensor_port
         
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
+        
         # Update the visual shape after ports are rebuilt
         self.update_shape()
         # Update any connected pipes
@@ -641,6 +729,15 @@ class JunctionComponentItem(QGraphicsPathItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class TXVComponentItem(QGraphicsPathItem):
@@ -683,6 +780,12 @@ class TXVComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Create the three ports: inlet (top), outlet (bottom), bulb (center)."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)
@@ -707,6 +810,36 @@ class TXVComponentItem(QGraphicsPathItem):
         bulb_port = PortItem('bulb', bulb_def, self)
         bulb_port.setPos(25, 0)  # Move to right perimeter of the TXV shape
         self.ports['bulb'] = bulb_port
+        
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
     
     def update_shape(self):
         """Draw the bow-tie shape (two triangles touching at center)."""
@@ -747,6 +880,15 @@ class TXVComponentItem(QGraphicsPathItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class DistributorComponentItem(QGraphicsPathItem):
@@ -789,6 +931,12 @@ class DistributorComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Create ports: 1 inlet and multiple outlets based on circuit_count."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)
@@ -815,6 +963,36 @@ class DistributorComponentItem(QGraphicsPathItem):
             y_pos = i * port_spacing - outlet_height / 2
             outlet_port.setPos(30, y_pos)
             self.ports[port_name] = outlet_port
+        
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
         
         # Update the visual shape after ports are rebuilt
         self.update_shape()
@@ -872,6 +1050,15 @@ class DistributorComponentItem(QGraphicsPathItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class SensorBulbComponentItem(QGraphicsPathItem):
@@ -936,6 +1123,12 @@ class SensorBulbComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Create the sensor port on the right perimeter of the rounded rectangle."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)
@@ -948,6 +1141,36 @@ class SensorBulbComponentItem(QGraphicsPathItem):
         sensor_port = PortItem('measurement', sensor_def, self)
         sensor_port.setPos(45, 20)  # Right perimeter of the 40x40 rounded rectangle
         self.ports['measurement'] = sensor_port
+        
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
     
     def boundingRect(self):
         """Return the bounding rectangle."""
@@ -970,6 +1193,15 @@ class SensorBulbComponentItem(QGraphicsPathItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class FanComponentItem(QGraphicsPathItem):
@@ -1038,6 +1270,12 @@ class FanComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Rebuild dynamic sensor ports based on sensor_count property."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         try:
             # Clear existing ports
             for port_item in list(self.ports.values()):
@@ -1073,6 +1311,36 @@ class FanComponentItem(QGraphicsPathItem):
                     port_x = 35
                     port_item.setPos(port_x, port_y)
                     self.ports[port_name] = port_item
+            
+            # IMPORTANT: Restore pipe connections to ports with matching names
+            total_restored = 0
+            comp_type = self.component_data['type']
+            for port_name, pipes in port_connections.items():
+                if port_name in self.ports:
+                    new_port = self.ports[port_name]
+                    for pipe in pipes:
+                        # Add connection to new port
+                        if hasattr(new_port, 'add_connected_pipe'):
+                            new_port.add_connected_pipe(pipe)
+                        # Update pipe's internal port references
+                        if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                            if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                                pipe_data = pipe.pipe_data
+                                start_comp_id = pipe_data.get('start_component_id')
+                                start_port = pipe_data.get('start_port')
+                                end_comp_id = pipe_data.get('end_component_id')
+                                end_port = pipe_data.get('end_port')
+                                
+                                if start_comp_id == self.component_id and start_port == port_name:
+                                    pipe.start_port_item = new_port
+                                if end_comp_id == self.component_id and end_port == port_name:
+                                    pipe.end_port_item = new_port
+                        if hasattr(pipe, 'update_path'):
+                            pipe.update_path()
+                        total_restored += 1
+            
+            if total_restored > 0:
+                print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
             
         except Exception as e:
             print(f"[FAN] Error rebuilding ports: {e}")
@@ -1161,6 +1429,15 @@ class FanComponentItem(QGraphicsPathItem):
         for port_item in self.ports.values():
             for pipe_item in port_item.connected_pipes:
                 pipe_item.update_path()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class AirSensorArrayComponentItem(QGraphicsRectItem):
@@ -1221,6 +1498,12 @@ class AirSensorArrayComponentItem(QGraphicsRectItem):
     
     def rebuild_ports(self):
         """Create evenly spaced sensor ports along the horizontal block."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)
@@ -1272,6 +1555,36 @@ class AirSensorArrayComponentItem(QGraphicsRectItem):
             port_item = PortItem(port_name, port_def, self)
             port_item.setPos(x_pos, y_pos)
             self.ports[port_name] = port_item
+        
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
     
     def update_size(self, width, height):
         """Update the block size and rebuild ports."""
@@ -1288,6 +1601,15 @@ class AirSensorArrayComponentItem(QGraphicsRectItem):
             self.component_data['rotation'] = value
             
         return super().itemChange(change, value)
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class ShelvingGridComponentItem(QGraphicsPathItem):
@@ -1330,6 +1652,12 @@ class ShelvingGridComponentItem(QGraphicsPathItem):
     
     def rebuild_ports(self):
         """Create sensor ports at grid intersections (shelf corners)."""
+        # IMPORTANT: Save pipe connections before clearing ports
+        port_connections = {}
+        for port_name, port_item in self.ports.items():
+            if hasattr(port_item, 'connected_pipes') and port_item.connected_pipes:
+                port_connections[port_name] = list(port_item.connected_pipes)
+        
         # Clear existing ports
         for port_item in list(self.ports.values()):
             port_item.setParentItem(None)
@@ -1390,6 +1718,36 @@ class ShelvingGridComponentItem(QGraphicsPathItem):
         
         print(f"[SHELVING] Created grid with {len(self.ports)} sensors ({columns+1} cols x {shelf_rows} rows x 2 edges)")
         
+        # IMPORTANT: Restore pipe connections to ports with matching names
+        total_restored = 0
+        comp_type = self.component_data['type']
+        for port_name, pipes in port_connections.items():
+            if port_name in self.ports:
+                new_port = self.ports[port_name]
+                for pipe in pipes:
+                    # Add connection to new port
+                    if hasattr(new_port, 'add_connected_pipe'):
+                        new_port.add_connected_pipe(pipe)
+                    # Update pipe's internal port references
+                    if hasattr(pipe, 'start_port_item') and hasattr(pipe, 'end_port_item'):
+                        if hasattr(pipe, 'pipe_data') and hasattr(pipe, 'pipe_id'):
+                            pipe_data = pipe.pipe_data
+                            start_comp_id = pipe_data.get('start_component_id')
+                            start_port = pipe_data.get('start_port')
+                            end_comp_id = pipe_data.get('end_component_id')
+                            end_port = pipe_data.get('end_port')
+                            
+                            if start_comp_id == self.component_id and start_port == port_name:
+                                pipe.start_port_item = new_port
+                            if end_comp_id == self.component_id and end_port == port_name:
+                                pipe.end_port_item = new_port
+                    if hasattr(pipe, 'update_path'):
+                        pipe.update_path()
+                    total_restored += 1
+        
+        if total_restored > 0:
+            print(f"[REBUILD] Restored {total_restored} pipe connections to {comp_type}")
+        
         # Update visual
         self.update_shape()
     
@@ -1447,6 +1805,15 @@ class ShelvingGridComponentItem(QGraphicsPathItem):
             self.component_data['rotation'] = value
             
         return super().itemChange(change, value)
+    
+    def mouseDoubleClickEvent(self, event):
+        """Handle double-click to open property dialog."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            if hasattr(self.scene(), 'views') and self.scene().views():
+                view = self.scene().views()[0]
+                if hasattr(view.parent(), 'on_component_double_clicked'):
+                    view.parent().on_component_double_clicked(self)
+        super().mouseDoubleClickEvent(event)
 
 
 class PipeItem(QGraphicsPathItem):

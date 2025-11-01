@@ -79,14 +79,27 @@ class PhDiagramGenerator:
         
         # Helper to convert psig to Pa
         def psig_to_pa(psig):
-            if psig is None or (isinstance(psig, float) and np.isnan(psig)):
+            if psig is None:
                 return np.nan
-            return (psig + 14.696) * 6894.76
+            try:
+                psig_f = float(psig)
+            except Exception:
+                return np.nan
+            return (psig_f + 14.696) * 6894.76
+
+        # Safe numeric coercion for any input that might be a string/object
+        def to_float(val):
+            if val is None:
+                return np.nan
+            try:
+                return float(val)
+            except Exception:
+                return np.nan
 
         # Prefer already-in-Pa columns if present; otherwise convert from our psig outputs
         # FIXED: Updated to use NEW Excel column names
-        P_suc_pa = data_row.get('P_suc', np.nan)
-        P_cond_pa = data_row.get('P_cond', np.nan)
+        P_suc_pa = to_float(data_row.get('P_suc', np.nan))
+        P_cond_pa = to_float(data_row.get('P_cond', np.nan))
 
         if np.isnan(P_suc_pa):
             # Try NEW Excel name first, then old name for backward compat
@@ -122,12 +135,13 @@ class PhDiagramGenerator:
         # FIXED: Use NEW Excel column names
         h_2b = None
         if 'h_2b' in data_row.index:
-            h_2b = data_row['h_2b']
+            h_2b = to_float(data_row['h_2b'])
         if h_2b is None or np.isnan(h_2b):
             # Try NEW Excel name first, then old name
             T_2b_f = data_row.get('T_2b')  # NEW Excel name
             if T_2b_f is None:
                 T_2b_f = data_row.get('Comp.in')  # OLD name (backward compat)
+            T_2b_f = to_float(T_2b_f)
             if T_2b_f is not None and not np.isnan(T_2b_f) and P_suc_kpa > 0:
                 T_2b_K = (T_2b_f + 459.67) * 5.0 / 9.0
                 try:
@@ -147,12 +161,13 @@ class PhDiagramGenerator:
         # FIXED: Use NEW Excel column names
         h_3a = None
         if 'h_3a' in data_row.index:
-            h_3a = data_row['h_3a']
+            h_3a = to_float(data_row['h_3a'])
         if h_3a is None or np.isnan(h_3a):
             # Try NEW Excel name first, then old name
             T_3a_f = data_row.get('T_3a')  # NEW Excel name
             if T_3a_f is None:
                 T_3a_f = data_row.get('T comp outlet')  # OLD name (backward compat)
+            T_3a_f = to_float(T_3a_f)
             if T_3a_f is not None and not np.isnan(T_3a_f) and P_cond_kpa > 0:
                 T_3a_K = (T_3a_f + 459.67) * 5.0 / 9.0
                 try:
@@ -172,12 +187,13 @@ class PhDiagramGenerator:
         # FIXED: Use NEW Excel column names
         h_3b = None
         if 'h_3b' in data_row.index:
-            h_3b = data_row['h_3b']
+            h_3b = to_float(data_row['h_3b'])
         if h_3b is None or np.isnan(h_3b):
             # Try NEW Excel name first, then old name
             T_3b_f = data_row.get('T_3b')  # NEW Excel name
             if T_3b_f is None:
                 T_3b_f = data_row.get('T cond inlet')  # OLD name (backward compat)
+            T_3b_f = to_float(T_3b_f)
             if T_3b_f is not None and not np.isnan(T_3b_f) and P_cond_kpa > 0:
                 T_3b_K = (T_3b_f + 459.67) * 5.0 / 9.0
                 try:
@@ -197,12 +213,13 @@ class PhDiagramGenerator:
         # FIXED: Use NEW Excel column names
         h_4a = None
         if 'h_4a' in data_row.index:
-            h_4a = data_row['h_4a']
+            h_4a = to_float(data_row['h_4a'])
         if h_4a is None or np.isnan(h_4a):
             # Try NEW Excel name first, then old name
             T_4a_f = data_row.get('T_4a')  # NEW Excel name
             if T_4a_f is None:
                 T_4a_f = data_row.get('T cond. Outlet')  # OLD name (backward compat)
+            T_4a_f = to_float(T_4a_f)
             if T_4a_f is not None and not np.isnan(T_4a_f) and P_cond_kpa > 0:
                 T_4a_K = (T_4a_f + 459.67) * 5.0 / 9.0
                 try:
@@ -234,14 +251,14 @@ class PhDiagramGenerator:
             # Preferred: existing h_4b_{circuit}
             h_4b_col = f'h_4b_{circuit}'
             if h_4b_col in data_row.index:
-                h_4b = data_row[h_4b_col]
+                h_4b = to_float(data_row[h_4b_col])
             # Fallback: Enthalpy_txv_lh/ctr/rh
             if h_4b is None or np.isnan(h_4b):
                 suffix_map = {'LH': 'lh', 'CTR': 'ctr', 'RH': 'rh'}
                 alt_col = f'Enthalpy_txv_{suffix_map[circuit]}'
                 if alt_col in data_row.index:
-                    h_4b = data_row[alt_col]
-                if not np.isnan(h_4b) and 200 < h_4b < 700:
+                    h_4b = to_float(data_row[alt_col])
+                if h_4b is not None and not np.isnan(h_4b) and 200 < h_4b < 700:
                     cycle_data['circuit_points'][circuit]['4b'] = {
                         'h': h_4b,
                         'P': P_cond_kpa,
@@ -263,13 +280,13 @@ class PhDiagramGenerator:
             h_2a_col = f'h_2a_{circuit}'
             h_2a = None
             if h_2a_col in data_row.index:
-                h_2a = data_row[h_2a_col]
+                h_2a = to_float(data_row[h_2a_col])
             if h_2a is None or np.isnan(h_2a):
                 suffix_map = {'LH': 'lh', 'CTR': 'ctr', 'RH': 'rh'}
                 alt_col = f'H_coil {suffix_map[circuit]}'
                 if alt_col in data_row.index:
-                    h_2a = data_row[alt_col]
-                if not np.isnan(h_2a) and 200 < h_2a < 700:
+                    h_2a = to_float(data_row[alt_col])
+                if h_2a is not None and not np.isnan(h_2a) and 200 < h_2a < 700:
                     cycle_data['circuit_points'][circuit]['2a'] = {
                         'h': h_2a,
                         'P': P_suc_kpa,
@@ -278,6 +295,53 @@ class PhDiagramGenerator:
                     }
         
         return cycle_data
+
+    # ===== NEW: averaged-points workflow =====
+    def build_averaged_points(self, df: pd.DataFrame) -> dict:
+        """Compute 12 averaged points (T1b,T2b,T3b,T4b per module) using ph_data_builder."""
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info("[PH AVG] Using averaged builder")
+        from ph_data_builder import compute_averaged_points
+        return compute_averaged_points(df, refrigerant=self.refrigerant)
+
+    def get_paths_from_points(self, points: dict) -> dict:
+        """
+        Convert averaged module points into plotting paths.
+        Path order per module: T3b -> T4b -> T1b -> T2b (simple quadrilateral loop).
+        Returns {'LH': [...], 'CTR': [...], 'RH': [...]} where each value is list of point dicts {h,P}.
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        paths = {'LH': [], 'CTR': [], 'RH': [], 'compression': []}
+        for module in ['LH', 'CTR', 'RH']:
+            mod = points.get(module) or {}
+            seq = []
+            for key in ['T3b', 'T4b', 'T1b', 'T2b']:
+                pt = mod.get(key)
+                if pt and all(k in pt for k in ('h', 'P')) and not (np.isnan(pt['h']) or np.isnan(pt['P'])):
+                    seq.append({'h': float(pt['h']), 'P': float(pt['P'])})
+                    logger.info(f"[PH AVG] Path.{module}.{key} -> (x={pt['h']:.3f} kJ/kg, y={pt['P']:.3f} kPa)")
+            paths[module] = seq
+        # Build compression line (2b -> 3b) using any module as source
+        any_mod = points.get('LH') or points.get('CTR') or points.get('RH') or {}
+        pt_2b = any_mod.get('T2b')
+        pt_3b = any_mod.get('T3b')
+        if pt_2b and pt_3b:
+            if not (np.isnan(pt_2b.get('h', np.nan)) or np.isnan(pt_2b.get('P', np.nan)) or
+                    np.isnan(pt_3b.get('h', np.nan)) or np.isnan(pt_3b.get('P', np.nan))):
+                paths['compression'] = [
+                    {'h': float(pt_2b['h']), 'P': float(pt_2b['P'])},
+                    {'h': float(pt_3b['h']), 'P': float(pt_3b['P'])}
+                ]
+                logger.info(f"[PH AVG] Compression 2b->3b -> [(x={pt_2b['h']:.3f}, y={pt_2b['P']:.3f}), (x={pt_3b['h']:.3f}, y={pt_3b['P']:.3f})]")
+
+        lh_pts = len(paths['LH'])
+        ctr_pts = len(paths['CTR'])
+        rh_pts = len(paths['RH'])
+        comp_pts = len(paths['compression'])
+        logger.info(f"[PH AVG] Paths updated: LH={lh_pts} pts, CTR={ctr_pts}, RH={rh_pts}, compression={comp_pts}")
+        return paths
     
     def get_cycle_paths(self, cycle_data):
         """
@@ -291,9 +355,9 @@ class PhDiagramGenerator:
         """
         paths = {
             'common_compression': [],  # 2b -> 3a
-            'LH_cycle': [],   # 3a -> 4b_LH -> 2a_LH -> 2b
-            'CTR_cycle': [],  # 3a -> 4b_CTR -> 2a_CTR -> 2b
-            'RH_cycle': [],   # 3a -> 4b_RH -> 2a_RH -> 2b
+            'LH_cycle': [],   # 3a -> 3b -> 4a -> 4b_LH -> 1_LH -> 2a_LH -> 2b
+            'CTR_cycle': [],  # 3a -> 3b -> 4a -> 4b_CTR -> 1_CTR -> 2a_CTR -> 2b
+            'RH_cycle': [],   # 3a -> 3b -> 4a -> 4b_RH -> 1_RH -> 2a_RH -> 2b
             'LH_mix': [],     # 2a_LH -> 2b
             'CTR_mix': [],    # 2a_CTR -> 2b
             'RH_mix': []      # 2a_RH -> 2b
@@ -310,19 +374,28 @@ class PhDiagramGenerator:
             ]
         
         # Build cycle paths for each circuit
-        # IMPORTANT: Circuit paths should NOT include the compression (2b -> 3a)
-        # That is drawn separately as the common compression line
+        # Note: We draw a continuous polyline per circuit as:
+        # 3a (common) -> 3b (common) -> 4a (common) -> 4b(c) -> 1(c) -> 2a(c) -> 2b (common)
+        # Compression 2b->3a is shown separately in common_compression
         for circuit_name in ['LH', 'CTR', 'RH']:
-            # Circuit-specific cycle: 3a -> 4b -> 1 -> 2a (NOT back to 2b)
             cycle_path = []
+            # common high-pressure path
             if '3a' in common:
                 cycle_path.append(common['3a'])
+            if '3b' in common:
+                cycle_path.append(common['3b'])
+            if '4a' in common:
+                cycle_path.append(common['4a'])
+            # circuit-specific expansion and evaporator
             if '4b' in circuits[circuit_name]:
                 cycle_path.append(circuits[circuit_name]['4b'])
             if '1' in circuits[circuit_name]:
                 cycle_path.append(circuits[circuit_name]['1'])
             if '2a' in circuits[circuit_name]:
                 cycle_path.append(circuits[circuit_name]['2a'])
+            # back to common suction
+            if '2b' in common:
+                cycle_path.append(common['2b'])
             
             paths[f'{circuit_name}_cycle'] = cycle_path
             

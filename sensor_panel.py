@@ -33,11 +33,9 @@ class SensorPanel(QWidget):
         self.load_config_button = QPushButton("Load Config")
         self.load_csv_button = QPushButton("Load CSV")
         self.save_config_button = QPushButton("Save Config")
-        self.merge_sessions_button = QPushButton("Merge Sessions…")
         file_ops_layout.addWidget(self.load_config_button)
         file_ops_layout.addWidget(self.load_csv_button)
         file_ops_layout.addWidget(self.save_config_button)
-        file_ops_layout.addWidget(self.merge_sessions_button)
         # Audit export button (writes two header rows + current filtered data)
         self.export_audit_button = QPushButton("Write Audit CSV")
         file_ops_layout.addWidget(self.export_audit_button)
@@ -83,7 +81,6 @@ class SensorPanel(QWidget):
         self.search_bar.textChanged.connect(self.filter_tree_and_select)
         self.sensor_tree.customContextMenuRequested.connect(self.show_context_menu)
         self.select_all_graph_checkbox.stateChanged.connect(self.on_select_all_graph_changed)
-        self.merge_sessions_button.clicked.connect(self.on_merge_sessions_clicked)
         self.export_audit_button.clicked.connect(self.on_export_audit_clicked)
 
     def on_item_clicked(self, item, column):
@@ -504,26 +501,6 @@ class SensorPanel(QWidget):
             mapped = len(self.data_manager.mappings)
         selected = len(self.sensor_tree.selectedItems())
         self.stats_label.setText(f"Sensors: {total} | Mapped: {mapped} | Selected: {selected}")
-
-    def on_merge_sessions_clicked(self):
-        """Open two JSON files and write a merged output file."""
-        from PyQt6.QtWidgets import QFileDialog, QMessageBox
-        file_a, _ = QFileDialog.getOpenFileName(self, "Open Session A", "", "JSON Files (*.json)")
-        if not file_a:
-            return
-        file_b, _ = QFileDialog.getOpenFileName(self, "Open Session B", "", "JSON Files (*.json)")
-        if not file_b:
-            return
-        output, _ = QFileDialog.getSaveFileName(self, "Save Merged Session", "merged.json", "JSON Files (*.json)")
-        if not output:
-            return
-        ok = self.data_manager.merge_sessions_to_file(file_a, file_b, output)
-        if ok:
-            QMessageBox.information(self, "Merge Complete", f"Merged session saved to:\n{output}")
-            # Load merged session immediately for user
-            self.data_manager.load_session(output)
-        else:
-            QMessageBox.critical(self, "Merge Failed", "An error occurred while merging sessions.")
 
     def on_export_audit_clicked(self):
         """Write audit_export.csv with two header rows and filtered data (overwrite)."""
