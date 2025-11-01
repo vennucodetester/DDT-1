@@ -1,0 +1,38 @@
+2025-10-31 01:38:37 [INFO] logging_setup:65 - Logging initialized -> logs\app_20251031_013837.log
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:304 - [PH AVG] Using averaged builder
+2025-10-31 01:40:19 [INFO] ph_data_builder:150 - [PH AVG] LH.T3b from ['T_3b'] -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:152 - [PH AVG] LH.T4b from ['T_4b-lh'] -> (x=265.022 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:154 - [PH AVG] LH.T1b (x=T4b, y@Psuc) from ['T_4b-lh'] -> (x=265.022 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:156 - [PH AVG] LH.T2b from ['T_2b'] -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:150 - [PH AVG] CTR.T3b from ['T_3b'] -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:152 - [PH AVG] CTR.T4b from ['T_4b-ctr'] -> (x=261.046 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:154 - [PH AVG] CTR.T1b (x=T4b, y@Psuc) from ['T_4b-ctr'] -> (x=261.046 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:156 - [PH AVG] CTR.T2b from ['T_2b'] -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:150 - [PH AVG] RH.T3b from ['T_3b'] -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:152 - [PH AVG] RH.T4b from ['T_4b-rh'] -> (x=259.019 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:154 - [PH AVG] RH.T1b (x=T4b, y@Psuc) from ['T_4b-rh'] -> (x=259.019 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:156 - [PH AVG] RH.T2b from ['T_2b'] -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_data_builder:163 - [PH AVG] Points built: common=12 total, LH=4, CTR=4, RH=4
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.LH.T3b -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.LH.T4b -> (x=265.022 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.LH.T1b -> (x=265.022 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.LH.T2b -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.CTR.T3b -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.CTR.T4b -> (x=261.046 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.CTR.T1b -> (x=261.046 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.CTR.T2b -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.RH.T3b -> (x=665.081 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.RH.T4b -> (x=259.019 kJ/kg, y=981.529 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.RH.T1b -> (x=259.019 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:324 - [PH AVG] Path.RH.T2b -> (x=595.988 kJ/kg, y=349.557 kPa)
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:337 - [PH AVG] Compression 2b->3b -> [(x=595.988, y=349.557), (x=665.081, y=981.529)]
+2025-10-31 01:40:19 [INFO] ph_diagram_generator:343 - [PH AVG] Paths updated: LH=4 pts, CTR=4, RH=4, compression=2
+2025-10-31 01:40:19 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.LH plotted -> [(665.081, 981.529), (265.022, 981.529), (265.022, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:19 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.CTR plotted -> [(665.081, 981.529), (261.046, 981.529), (261.046, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:19 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.RH plotted -> [(665.081, 981.529), (259.019, 981.529), (259.019, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:19 [INFO] ph_diagram_interactive_widget:247 - [PH AVG] Path.Compression plotted -> [(x=595.988, y=349.557), (x=665.081, y=981.529)]
+2025-10-31 01:40:28 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.LH plotted -> [(665.081, 981.529), (265.022, 981.529), (265.022, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:28 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.CTR plotted -> [(665.081, 981.529), (261.046, 981.529), (261.046, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:28 [INFO] ph_diagram_interactive_widget:247 - [PH AVG] Path.Compression plotted -> [(x=595.988, y=349.557), (x=665.081, y=981.529)]
+2025-10-31 01:40:29 [INFO] ph_diagram_interactive_widget:239 - [PH AVG] Path.LH plotted -> [(665.081, 981.529), (265.022, 981.529), (265.022, 349.557), (595.988, 349.557)]
+2025-10-31 01:40:29 [INFO] ph_diagram_interactive_widget:247 - [PH AVG] Path.Compression plotted -> [(x=595.988, y=349.557), (x=665.081, y=981.529)]
